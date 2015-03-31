@@ -2,7 +2,7 @@
 #include "globals.h"
 
 void IOController::init() {
-  LogHandler::logMsg(IOC_MODULE_NAME, "IO Controller init");
+  LogHandler::logMsg(IOC_MODULE_NAME, F("IO Controller init"));
   pinMode(PIN_PUMP, OUTPUT);
 }
 

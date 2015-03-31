@@ -6,7 +6,7 @@ void TimeLogic::init(){
     RTC.getTime();
     LogHandler::logMsg(TIME_MODULE_NAME, "Current time: " + RTC.hour);
   } else {
-    ErrorHandler::fatal(TIME_MODULE_NAME, "RTC not found !");
+    ErrorHandler::fatal(TIME_MODULE_NAME, F("RTC not found !"));
   }
 }
 

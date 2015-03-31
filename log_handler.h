@@ -14,10 +14,11 @@ class LogHandler {
   public:
   
   static void init();
-  
-  static void logMsg(const char *moduleName, const char* msg);
-  
+
   static void logMsg(const char *moduleName, String msg);
+
+  static void logMsg(const char *moduleName, String msg, int val);
+
 };
 
 #endif

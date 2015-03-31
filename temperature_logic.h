@@ -48,8 +48,8 @@ private:
   
   IOController *ioController;
 
-  bool _updateData(bool forceUpdate);
-
+  bool _updateData(bool forceUpdate, bool &hasUpdated);
+  
 };
 
 #endif

@@ -4,22 +4,19 @@ void LogHandler::init() {
   DEBUG_SERIAL.begin(9600);
 }
 
-void LogHandler::logMsg(const char *moduleName, const char* msg) {
+void LogHandler::logMsg(const char *moduleName, String msg) {
 #ifdef DEBUG_PRINT
   DEBUG_SERIAL.print(moduleName);
-  DEBUG_SERIAL.print("> ");
+  DEBUG_SERIAL.print(F("> "));
   DEBUG_SERIAL.println(msg);
 #endif
 }
 
-void LogHandler::logMsg(const char *moduleName, String msg) {
+void LogHandler::logMsg(const char *moduleName, String msg, int val) {
 #ifdef DEBUG_PRINT
-  char buf[msg.length() + 1];
-  msg[msg.length()] = 0;
-  
-  msg.toCharArray(buf, msg.length() + 1);
-  
-  logMsg(moduleName, buf);
+  DEBUG_SERIAL.print(moduleName);
+  DEBUG_SERIAL.print(F("> "));
+  DEBUG_SERIAL.print(msg);
+  DEBUG_SERIAL.println(val, DEC);
 #endif
 }
-

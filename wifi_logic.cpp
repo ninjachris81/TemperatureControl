@@ -5,47 +5,47 @@ void WifiLogic::init() {
   esp = new SoftwareSerial(10, 11);
 
   if (setupWiFi()) {
-    esp->println("AT+CIFSR");
+    esp->println(F("AT+CIFSR"));
     wait_for_esp_response(1000);
   } else {
-    LogHandler::logMsg(WIFI_MODULE_NAME, "Error while setting up Wifi");
+    LogHandler::logMsg(WIFI_MODULE_NAME, F("Error while setting up Wifi"));
   }
 
 }
 
 bool WifiLogic::setupWiFi() {
   // try empty AT command
-  LogHandler::logMsg(WIFI_MODULE_NAME, "Wifi: AT");
-  esp->println("AT");
+  LogHandler::logMsg(WIFI_MODULE_NAME, F("Wifi: AT"));
+  esp->println(F("AT"));
   if (!wait_for_esp_response(1000)) return false;
 
   // set mode 1 (client)
-  LogHandler::logMsg(WIFI_MODULE_NAME, "Wifi: AT+CWMODE=1");
-  esp->println("AT+CWMODE=1");
+  LogHandler::logMsg(WIFI_MODULE_NAME, F("Wifi: AT+CWMODE=1"));
+  esp->println(F("AT+CWMODE=1"));
   if (!wait_for_esp_response(1000)) return false;
 
   // reset WiFi module
-  esp->print("AT+RST\r\n");
+  esp->print(F("AT+RST\r\n"));
   if (!wait_for_esp_response(1500)) return false;
   delay(3000);
  
   // join AP
-  esp->print("AT+CWJAP=\"");
+  esp->print(F("AT+CWJAP=\""));
   esp->print(SSID);
-  esp->print("\",\"");
+  esp->print(F("\",\""));
   esp->print(PASS);
-  esp->println("\"");
+  esp->println(F("\""));
   // this may take a while, so wait for 5 seconds
   if (!wait_for_esp_response(5000)) return false;
   
-  esp->println("AT+CIPSTO=30");  
+  esp->println(F("AT+CIPSTO=30"));  
   if (!wait_for_esp_response(1000)) return false;
 
   // start server
-  esp->println("AT+CIPMUX=1");
+  esp->println(F("AT+CIPMUX=1"));
   if (!wait_for_esp_response(1000)) return false;
   
-  esp->print("AT+CIPSERVER=1,"); // turn on TCP service
+  esp->print(F("AT+CIPSERVER=1,")); // turn on TCP service
   esp->println(PORT);
   if (!wait_for_esp_response(1000)) return false;
   
