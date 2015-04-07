@@ -25,16 +25,15 @@ public:
       byte activeTimeStart10min;
       byte activeTimeEnd10min;
       int tempSwitches1;
-    } settingsData = {
-      50,
-      35,
-      0,
-      42,    // 7 am (7 * 6)
-      120    // 20 pm (20 * 6)
-    };
+    } settingsData;
 
   void init(TempSettingsStruct &settings, IOController *ioController);
   void update();
+  
+  void simulateTemperature(int currentTemperatureHC, int currentTemperatureW);
+  
+  int getTemperatureHC();
+  int getTemperatureW();  
 
 private:
   dht11 tempSensorHC;    // heat changer

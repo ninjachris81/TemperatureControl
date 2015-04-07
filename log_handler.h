@@ -19,6 +19,8 @@ class LogHandler {
 
   static void logMsg(const char *moduleName, String msg, int val);
 
+  static void logMsg(const char *moduleName, String msg, String val);
+
 };
 
 #endif

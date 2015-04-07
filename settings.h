@@ -5,7 +5,7 @@
 
 #include "temperature_logic.h"
 
-#define CONFIG_VERSION 'a'
+#define CONFIG_VERSION 1
 #define CONFIG_START 32
 #define CONFIG_EMPTY 255
 
@@ -29,12 +29,14 @@ class Settings {
     */
     
     struct SettingsStruct {
-      char configVersion;
+      unsigned char configVersion;
       TemperatureLogic::TempSettingsStruct temp;
     } settingsData;
 
     void loadSettings();
     void saveSettings();
+    
+    void defaultSettings();
   
 };
 

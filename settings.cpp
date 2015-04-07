@@ -18,10 +18,22 @@ void Settings::loadSettings() {
 }
 
 void Settings::saveSettings() {
-  LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Saving settings"));
+  LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Saving settings, size: "), sizeof(settingsData));
+  
+  settingsData.configVersion = CONFIG_VERSION;
 
   for (unsigned int t=0; t<sizeof(settingsData); t++)
     EEPROM.write(CONFIG_START + t, *((char*)&settingsData + t));
 }
 
-
+void Settings::defaultSettings() {
+  LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Setting to default"));
+  
+  settingsData.configVersion = CONFIG_VERSION;
+  settingsData.temp.operatingTemp_HC = 50;
+  settingsData.temp.operatingTemp_W = 35;
+  settingsData.temp.activeTimeStart10min = 42;    // 7 am (7 * 6)
+  settingsData.temp.activeTimeEnd10min = 120;      // 20 pm (20 * 6)
+  settingsData.temp.tempSwitches1 = 0;
+ 
+}
