@@ -15,6 +15,8 @@ void BluetoothLogic::init(TemperatureLogic *tempLogic, IOController* ioControlle
   BT.print(F("AT+NAME"));
   BT.print(BT_NAME);
   BT.flush();
+  
+  LogHandler::registerListener(this);
 }
 
 void BluetoothLogic::update() {
@@ -25,6 +27,7 @@ void BluetoothLogic::update() {
 
   if (lastUpdate==0 || millis() - lastUpdate >= UPDATE_INTERVAL_MS) {      // last update check interval
     switch (currentMode) {
+      case '2':  // sensor data and log data
       case '1':  // sensor data
         sendData();
         break;
@@ -46,3 +49,14 @@ void BluetoothLogic::sendData() {
 //  settings->settingsData->temp
 }
 
+void BluetoothLogic::onMessage(String msg, LogHandler::LOG_TYPE type) {
+  String tStr = (type==LogHandler::LOG ? "LOG" : (type==LogHandler::WARN ? "WARN" : "FATAL"));
+  
+  switch(currentMode) {
+    case '2':
+      BT.print(tStr);
+      BT.print(F("="));
+      BT.println(msg);
+      break;
+  }
+}

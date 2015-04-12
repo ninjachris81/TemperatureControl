@@ -1,5 +1,4 @@
 #include "display_logic.h"
-#include "error_handler.h"
 #include "time_logic.h"
 #include "format_utils.h"
 

@@ -7,7 +7,7 @@ void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioContro
   this->settingsData = settings;
   
   if (!_updateData(true, wasUpdated)) {
-    ErrorHandler::fatal(TEMPERATURE_MODULE_NAME, F("Failed to read from temp sensors !"));
+    LogHandler::fatal(TEMPERATURE_MODULE_NAME, F("Failed to read from temp sensors !"));
   }
   this->ioController = ioController;
   
@@ -42,7 +42,7 @@ void TemperatureLogic::update() {
           LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Skipped update of temp sensor data"));
         }
       } else {
-        ErrorHandler::warning(TEMPERATURE_MODULE_NAME, F("Failed to update data"));
+        LogHandler::warning(TEMPERATURE_MODULE_NAME, F("Failed to update data"));
       }
     } else {
       /*

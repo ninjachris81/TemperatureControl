@@ -28,10 +28,9 @@ DisplayLogic display;
 BluetoothLogic bluetooth;
 
 void setup() {
-  LogHandler::init();
+  LogHandler::init(&led);
   LogHandler::logMsg(MAIN_MODULE_NAME, F("Temperature Control v0.1"));
   led.init();
-  ErrorHandler::init(&led);
   
   settings.loadSettings();
   ioController.init();
@@ -44,7 +43,7 @@ void setup() {
   
   bluetooth.init(&temp, &ioController, &settings);
   
-  if (!ErrorHandler::hasFatalError) {
+  if (!LogHandler::hasFatalError) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init successfully"));
   } else {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Error while init"));
@@ -64,7 +63,7 @@ void loop() {
   
   bluetooth.update();
 
-  if (!ErrorHandler::hasFatalError) {
+  if (!LogHandler::hasFatalError) {
     temp.update();
     
     wifi.update();

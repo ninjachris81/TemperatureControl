@@ -13,7 +13,7 @@ void Settings::loadSettings() {
     for (unsigned int t=0; t<sizeof(settingsData); t++)
       *((char*)&settingsData + t) = EEPROM.read(CONFIG_START + t);
   } else {
-    ErrorHandler::warning(SETTINGS_MODULE_NAME, F("Error - Config version differs: "), myVersion);
+    LogHandler::warning(SETTINGS_MODULE_NAME, F("Error - Config version differs: "), myVersion);
   }
 }
 

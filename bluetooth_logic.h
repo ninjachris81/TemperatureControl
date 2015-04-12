@@ -12,6 +12,7 @@
 #include "temperature_logic.h"
 #include "iocontroller.h"
 #include "settings.h"
+#include "log_handler.h"
 
 #define BT_RX_PIN 10
 #define BT_TX_PIN 11
@@ -23,12 +24,14 @@
 
 #define BT_NAME F("TEMP_CTRL")
 
-class BluetoothLogic {
+class BluetoothLogic : public LogHandler::LogListener {
 public:
   void init(TemperatureLogic *tempLogic, IOController* ioController, Settings *settings);
   
   void update();
 
+  /*virtual*/ void onMessage(String msg, LogHandler::LOG_TYPE type=LogHandler::LOG);
+  
 private:
   unsigned long lastUpdate = 0;
   

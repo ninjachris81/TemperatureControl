@@ -8,7 +8,7 @@ void TimeLogic::init(){
     LogHandler::logMsg(TIME_MODULE_NAME, F("Current time: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
     RTC.startClock();
   } else {
-    ErrorHandler::fatal(TIME_MODULE_NAME, F("RTC not found !"));
+    LogHandler::fatal(TIME_MODULE_NAME, F("RTC not found !"));
   }
 }
 
