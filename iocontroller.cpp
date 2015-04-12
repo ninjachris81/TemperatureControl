@@ -28,3 +28,8 @@ void IOController::toggle(int pin, int pinIndex) {
   setValue(pin, pinIndex, !value);
 }
 
+byte IOController::getPinState() {
+  return pinState;
+}
+
+

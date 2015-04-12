@@ -8,7 +8,7 @@ void ErrorHandler::init(LedLogic *ledLogic) {
   ErrorHandler::hasFatalError = false;
 }
 
-void ErrorHandler::warning(const char *moduleName, String msg) {
+void ErrorHandler::warning(String moduleName, String msg) {
 #ifdef ERROR_PRINT
   ERROR_SERIAL.print(moduleName);
   ERROR_SERIAL.print(F("> WARN: "));
@@ -16,7 +16,7 @@ void ErrorHandler::warning(const char *moduleName, String msg) {
 #endif
 }
 
-void ErrorHandler::warning(const char *moduleName, String msg, int val) {
+void ErrorHandler::warning(String moduleName, String msg, int val) {
 #ifdef ERROR_PRINT
   ERROR_SERIAL.print(moduleName);
   ERROR_SERIAL.print(F("> WARN: "));
@@ -25,7 +25,7 @@ void ErrorHandler::warning(const char *moduleName, String msg, int val) {
 #endif
 }
 
-void ErrorHandler::fatal(const char *moduleName, String msg) {
+void ErrorHandler::fatal(String moduleName, String msg) {
 #ifdef ERROR_PRINT
   ERROR_SERIAL.print(moduleName);
   ERROR_SERIAL.print(F("> FATAL: "));

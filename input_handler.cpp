@@ -1,4 +1,5 @@
 #include "input_handler.h"
+#include "format_utils.h"
 
 void InputHandler::init(Settings* settings, TemperatureLogic* temperatureLogic, TimeLogic* timeLogic) {
   Serial.begin(9600);
@@ -20,13 +21,7 @@ void InputHandler::update() {
         this->settings->defaultSettings();
       } else if (tmpBuffer.equals(F("time"))) {
         // read time
-        String tmp;
-        tmp.concat(RTC.hour);
-        tmp.concat(F(":"));
-        tmp.concat(RTC.minute);
-        tmp.concat(F(":"));
-        tmp.concat(RTC.second);
-        LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Current time is: "), tmp);
+        LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Current time is: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
       } else if (tmpBuffer.startsWith(F("time"))) {
         int v1, v2, v3;
         if (parseParameters3(tmpBuffer, 5, v1, v2, v3)) {

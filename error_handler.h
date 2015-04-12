@@ -12,11 +12,11 @@ class ErrorHandler {
 public:
   static void init(LedLogic *ledLogic);
 
-  static void warning(const char *moduleName, String msg);
+  static void warning(String moduleName, String msg);
 
-  static void warning(const char *moduleName, String msg, int val);
+  static void warning(String moduleName, String msg, int val);
 
-  static void fatal(const char *moduleName, String msg);
+  static void fatal(String moduleName, String msg);
 
   static LedLogic *ledLogic;
   

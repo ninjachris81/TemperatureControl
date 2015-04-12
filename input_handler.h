@@ -6,7 +6,7 @@
 #include "temperature_logic.h"
 #include "time_logic.h"
 
-#define INPUT_HANDLER_MODULE_NAME "InputHandler"
+#define INPUT_HANDLER_MODULE_NAME F("InputHandler")
 
 class InputHandler {
 public:

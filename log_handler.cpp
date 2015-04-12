@@ -4,7 +4,7 @@ void LogHandler::init() {
   DEBUG_SERIAL.begin(9600);
 }
 
-void LogHandler::logMsg(const char *moduleName, String msg) {
+void LogHandler::logMsg(String moduleName, String msg) {
 #ifdef DEBUG_PRINT
   DEBUG_SERIAL.print(moduleName);
   DEBUG_SERIAL.print(F("> "));
@@ -12,7 +12,7 @@ void LogHandler::logMsg(const char *moduleName, String msg) {
 #endif
 }
 
-void LogHandler::logMsg(const char *moduleName, String msg, int val) {
+void LogHandler::logMsg(String moduleName, String msg, int val) {
 #ifdef DEBUG_PRINT
   DEBUG_SERIAL.print(moduleName);
   DEBUG_SERIAL.print(F("> "));
@@ -21,7 +21,7 @@ void LogHandler::logMsg(const char *moduleName, String msg, int val) {
 #endif
 }
 
-void LogHandler::logMsg(const char *moduleName, String msg, String val) {
+void LogHandler::logMsg(String moduleName, String msg, String val) {
 #ifdef DEBUG_PRINT
   DEBUG_SERIAL.print(moduleName);
   DEBUG_SERIAL.print(F("> "));

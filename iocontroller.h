@@ -7,9 +7,9 @@
 #include "WProgram.h"
 #endif
 
-#define PIN_PUMP 123
+#define PIN_PUMP 7
 #define PIN_PUMP_INDEX 0
-#define IOC_MODULE_NAME "IOController"
+#define IOC_MODULE_NAME F("IOController")
 
 class IOController {
 public:
@@ -19,6 +19,8 @@ public:
   void setValue(int pin, int pinIndex, bool enable);
   
   void toggle(int pin, int pinIndex);
+  
+  byte getPinState();
   
 private:
   byte pinState = 0;

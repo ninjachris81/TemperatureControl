@@ -4,17 +4,21 @@
 void SSD1306Text::setLine(uint8_t lineNo, String text) {
   if (lineNo > LINE_COUNT-1) return;
   lines[lineNo] = text.length()>MAX_CHARS_IN_LINE ? text.substring(0, MAX_CHARS_IN_LINE) : text;
+  needsRefresh = true;
 }
 
 void SSD1306Text::clearDisplay() {
   for (uint8_t i=0;i<LINE_COUNT;i++) {
     lines[i] = "";
   }
+  needsRefresh = true;
 }
 
 void SSD1306Text::begin(uint8_t i2caddr, uint8_t vccstate) {
   this->i2caddr = i2caddr;
   
+  needsRefresh = true;
+
   // I2C Init
   Wire.begin();
 
@@ -106,6 +110,8 @@ void SSD1306Text::render() {
   Serial.print(millis() - time);
   Serial.println(F(" ms"));
   */
+  
+  needsRefresh = false;
 }
 
 void SSD1306Text::drawChar(unsigned char c, uint8_t color, uint8_t bg, uint8_t size, uint8_t thisBuffer[]) {

@@ -73,6 +73,8 @@ public:
   void clearDisplay();
   
 private:
+  bool needsRefresh;
+
   uint8_t i2caddr;
   String lines[LINE_COUNT];
 

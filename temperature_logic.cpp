@@ -45,9 +45,11 @@ void TemperatureLogic::update() {
         ErrorHandler::warning(TEMPERATURE_MODULE_NAME, F("Failed to update data"));
       }
     } else {
+      /*
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, start: "), settingsData.activeTimeStart10min);
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, end: "), settingsData.activeTimeEnd10min);
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, start current: "), RTC.minute * MINUTE10_FACTOR);
+      */
     }
     
     lastUpdate = millis();

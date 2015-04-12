@@ -5,6 +5,8 @@
 
 #include "globals.h"
 
+#define MAIN_MODULE_NAME F("MAIN")
+
 #include "settings.h"
 #include "time_logic.h"
 #include "temperature_logic.h"
@@ -13,6 +15,7 @@
 #include "led_logic.h"
 #include "input_handler.h"
 #include "display_logic.h"
+#include "bluetooth_logic.h"
 
 LedLogic led;
 Settings settings;
@@ -21,11 +24,12 @@ TemperatureLogic temp;
 IOController ioController;
 WifiLogic wifi;
 InputHandler inputHandler;
-DisplayLogic displayLogic;
+DisplayLogic display;
+BluetoothLogic bluetooth;
 
 void setup() {
   LogHandler::init();
-  LogHandler::logMsg("MAIN", F("Temperature Control v0.1"));
+  LogHandler::logMsg(MAIN_MODULE_NAME, F("Temperature Control v0.1"));
   led.init();
   ErrorHandler::init(&led);
   
@@ -36,12 +40,14 @@ void setup() {
   wifi.init();
   inputHandler.init(&settings, &temp, &time);
   
-  displayLogic.init();
+  display.init();
+  
+  bluetooth.init(&temp, &ioController, &settings);
   
   if (!ErrorHandler::hasFatalError) {
-    LogHandler::logMsg("MAIN", F("Finished init successfully"));
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init successfully"));
   } else {
-    LogHandler::logMsg("MAIN", F("Error while init"));
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Error while init"));
   }
 }
 
@@ -50,11 +56,13 @@ void loop() {
   
   inputHandler.update();
   
-  displayLogic.update();
+  display.update();
   
   temp.update();
 
   time.update();
+  
+  bluetooth.update();
 
   if (!ErrorHandler::hasFatalError) {
     temp.update();

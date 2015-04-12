@@ -11,11 +11,11 @@
 
 #define BUFFER_SIZE 512
 
-#define SSID  "Stalnet"      // change this to match your WiFi SSID
-#define PASS  "wlandome"  // change this to match your WiFi password
-#define PORT  "80"           // using port 8080 by default
+#define SSID  F("Stalnet")      // change this to match your WiFi SSID
+#define PASS  F("wlandome")  // change this to match your WiFi password
+#define PORT  80           // using port 8080 by default
 
-#define WIFI_MODULE_NAME "Wifi"
+#define WIFI_MODULE_NAME F("Wifi")
 
 class WifiLogic {
 public:

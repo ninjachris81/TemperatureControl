@@ -3,7 +3,7 @@
 
 #include "DS1307new.h"
 
-#define TIME_MODULE_NAME "Time"
+#define TIME_MODULE_NAME F("Time")
 
 #define TIME_UPDATE_INTERVAL_MS 1000
 
