@@ -9,7 +9,7 @@
 #define CONFIG_START 32
 #define CONFIG_EMPTY 255
 
-#define SETTINGS_MODULE_NAME F("Settings")
+#define SETTINGS_MODULE_NAME F("SETT")
 
 class Settings {
   public:

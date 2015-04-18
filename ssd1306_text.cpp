@@ -3,9 +3,21 @@
 
 void SSD1306Text::setLine(uint8_t lineNo, String text) {
   if (lineNo > LINE_COUNT-1) return;
-  lines[lineNo] = text.length()>MAX_CHARS_IN_LINE ? text.substring(0, MAX_CHARS_IN_LINE) : text;
+  if (text.length()>MAX_CHARS_IN_LINE) {
+    lines[lineNo] = text.substring(0, MAX_CHARS_IN_LINE-3);
+    lines[lineNo].concat(F("..."));
+  } else {
+    lines[lineNo] = text;
+  }
   needsRefresh = true;
 }
+
+void SSD1306Text::setHorizontalLine(uint8_t lineNo) {
+  String tmp;
+  for (uint8_t i=0;i<MAX_CHARS_IN_LINE;i++) tmp+='-';
+  setLine(lineNo, tmp);
+}
+
 
 void SSD1306Text::clearDisplay() {
   for (uint8_t i=0;i<LINE_COUNT;i++) {

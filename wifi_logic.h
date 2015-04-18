@@ -15,7 +15,7 @@
 #define PASS  F("wlandome")  // change this to match your WiFi password
 #define PORT  80           // using port 8080 by default
 
-#define WIFI_MODULE_NAME F("Wifi")
+#define WIFI_MODULE_NAME F("WIFI")
 
 class WifiLogic {
 public:

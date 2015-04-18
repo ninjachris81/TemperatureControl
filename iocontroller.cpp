@@ -10,9 +10,10 @@ void IOController::setValue(int pin, int pinIndex, bool enable) {
   bool value = bitRead(pinState, pinIndex);
   if (value==enable) return;    // already set
 
-  String msg = "Setting PIN " + pin;
-  msg.concat(" to ");
-  msg.concat((enable ? "true" : "false"));
+  String msg = F("Setting PIN ");
+  msg.concat(pin);
+  msg.concat(F(" to "));
+  msg.concat((enable ? F("true") : F("false")));
   LogHandler::logMsg(IOC_MODULE_NAME, msg);
   
   digitalWrite(pin, enable);

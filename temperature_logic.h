@@ -15,7 +15,7 @@
 #define CHECK_INTERVAL_MIN_MS 1000
 #define CHECK_TEMP_INTERVAL_MIN_MS 5000
 
-#define TEMPERATURE_MODULE_NAME F("Temperature")
+#define TEMPERATURE_MODULE_NAME F("TEMP")
 
 class TemperatureLogic {
 public:

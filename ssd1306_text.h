@@ -68,6 +68,10 @@ public:
   
   void setLine(uint8_t lineNo, String text);
   
+  void setHorizontalLine(uint8_t lineNo);
+  
+  static const uint8_t lineCount = LINE_COUNT;
+  
   void render();
   
   void clearDisplay();

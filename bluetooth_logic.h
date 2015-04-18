@@ -18,7 +18,7 @@
 #define BT_TX_PIN 11
 #define BT_BAUD_RATE 9600
 
-#define INPUT_HANDLER_MODULE_NAME F("Bluetooth")
+#define INPUT_HANDLER_MODULE_NAME F("BT")
 
 #define UPDATE_INTERVAL_MS 2000
 

@@ -9,7 +9,7 @@
 
 #define PIN_PUMP 7
 #define PIN_PUMP_INDEX 0
-#define IOC_MODULE_NAME F("IOController")
+#define IOC_MODULE_NAME F("IOC")
 
 class IOController {
 public:
