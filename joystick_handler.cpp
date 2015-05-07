@@ -26,11 +26,11 @@ void JoystickHandler::update() {
   if (btn==HIGH) {
     if (!BIT_CHECK(state,STATE_BUTTON)) {
       BIT_SET(state, STATE_BUTTON);
-      if (feedbackHandler!=NULL) feedbackHandler->onPressed(true);
+      if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_BUTTON, true);
     }
   } else {
     if (BIT_CHECK(state,STATE_BUTTON)) {
-      if (feedbackHandler!=NULL) feedbackHandler->onPressed(false);
+      if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_BUTTON, false);
       BIT_CLEAR(state,STATE_BUTTON);
     }
   }
@@ -42,22 +42,22 @@ void JoystickHandler::update() {
       // left
       if (!BIT_CHECK(state,STATE_LEFT)) {
         BIT_SET(state,STATE_LEFT);
-        if (feedbackHandler!=NULL) feedbackHandler->onLeft(true);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_LEFT, true);
       }
     } else if ((x > CENTER_VALUE + VALUE_THRESHOLD)) {
       // right
       if (!BIT_CHECK(state,STATE_RIGHT)) {
         BIT_SET(state,STATE_RIGHT);
-        if (feedbackHandler!=NULL) feedbackHandler->onRight(true);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_RIGHT, true);
       }
     } else {
       // none
       if (BIT_CHECK(state,STATE_LEFT)) {
-        if (feedbackHandler!=NULL) feedbackHandler->onLeft(false);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_LEFT, false);
         BIT_CLEAR(state,STATE_LEFT);
       }
       if (BIT_CHECK(state,STATE_RIGHT)) {
-        if (feedbackHandler!=NULL) feedbackHandler->onRight(false);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_RIGHT, false);
         BIT_CLEAR(state,STATE_RIGHT);
       }
     }
@@ -67,23 +67,23 @@ void JoystickHandler::update() {
       // down
       if (!BIT_CHECK(state,STATE_DOWN)) {
         BIT_SET(state,STATE_DOWN);
-        if (feedbackHandler!=NULL) feedbackHandler->onDown(true);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_DOWN, true);
       }
     } else if ((y > CENTER_VALUE + VALUE_THRESHOLD)) {
       // up
       if (!BIT_CHECK(state,STATE_UP)) {
         BIT_SET(state,STATE_UP);
-        if (feedbackHandler!=NULL) feedbackHandler->onUp(true);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_UP, true);
       }
     } else {
 
       // none
       if (BIT_CHECK(state,STATE_UP)) {
-        if (feedbackHandler!=NULL) feedbackHandler->onUp(false);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_UP, false);
         BIT_CLEAR(state,STATE_UP);
       }
       if (BIT_CHECK(state,STATE_DOWN)) {
-        if (feedbackHandler!=NULL) feedbackHandler->onDown(false);
+        if (feedbackHandler!=NULL) feedbackHandler->onKeyEvent(JoystickFeedbackHandler::KEY_DOWN, false);
         BIT_CLEAR(state,STATE_DOWN);
       }
     }

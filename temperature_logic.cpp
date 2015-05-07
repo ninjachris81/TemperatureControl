@@ -1,15 +1,37 @@
 #include "temperature_logic.h"
 #include "settings.h"
 
+TemperatureLogic::TemperatureLogic() {
+  this->wire = new OneWire(PIN_TEMP);
+  this->tempSensors = new DallasTemperature(wire);
+}
+
+TemperatureLogic::~TemperatureLogic() {
+  delete wire;
+  delete tempSensors;
+}
+
 void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioController) {
   bool wasUpdated;
   
   this->settingsData = settings;
+  this->ioController = ioController;
   
+  tempSensors->begin();
+  byte addr[8];
+
+  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Searching temperature sensors..."));
+  while(wire->search(addr)) {
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Found one temperature sensor"));
+    if ( OneWire::crc8( addr, 7) != addr[7]) {
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("CRC is not valid for temp sensor !"));
+    }
+  }
+  wire->reset_search();
+
   if (!_updateData(true, wasUpdated)) {
     LogHandler::fatal(TEMPERATURE_MODULE_NAME, F("Failed to read from temp sensors !"));
   }
-  this->ioController = ioController;
   
   /*
   LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Operating temp HC: "), settings.operatingTemp_HC);
@@ -18,6 +40,8 @@ void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioContro
   LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Active Time Start: "), settings.activeTimeStart10min);
   LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Active Time End: "), settings.activeTimeEnd10min);
   */
+  
+//  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Number of temp sensors found: "), tempSensors->getDeviceCount());
 }
 
 void TemperatureLogic::update() {
@@ -39,7 +63,7 @@ void TemperatureLogic::update() {
           LogHandler::logMsg(TEMPERATURE_MODULE_NAME, (enablePump ? F("Enabling pump") : F("Disabling pump")));
           ioController->setValue(PIN_PUMP, PIN_PUMP_INDEX, enablePump);
         } else {
-          LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Skipped update of temp sensor data"));
+          //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Skipped update of temp sensor data"));
         }
       } else {
         LogHandler::warning(TEMPERATURE_MODULE_NAME, F("Failed to update data"));
@@ -62,20 +86,19 @@ bool TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdated) {
   hasUpdated = false;
 
   if (forceUpdate || lastTempCheck==0 || (millis() - lastTempCheck) >= CHECK_TEMP_INTERVAL_MIN_MS) {    // check sensor update interval
-  /*
-    if (!tempSensorHC.read(DHT11_PIN_HC)==DHTLIB_OK) return false;
-    currentTemperatureHC = tempSensorHC.temperature;
+    tempSensors->requestTemperatures();
+    //if (tempSensors->getDeviceCount()!=2) return false;
+    
+    currentTemperatureHC = tempSensors->getTempCByIndex(TEMP_INDEX_HC);
     LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("New temperature HC: "), currentTemperatureHC);
-    */
   
-    if (!tempSensorW.read(DHT11_PIN_W)==DHTLIB_OK) return false;
-    currentTemperatureW = tempSensorW.temperature;
+    currentTemperatureW = tempSensors->getTempCByIndex(TEMP_INDEX_W);
     LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("New temperature W: "), currentTemperatureW);
     
     lastTempCheck = millis();
     hasUpdated = true;
   } else {
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Waiting for update, ltc: "), lastTempCheck);
+    //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Waiting for update, ltc: "), lastTempCheck);
   }
   return true;
 }

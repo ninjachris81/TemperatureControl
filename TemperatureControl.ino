@@ -37,9 +37,9 @@ void setup() {
   time.init();
   temp.init(settings.settingsData.temp, &ioController);
   wifi.init();
-  inputHandler.init(&settings, &temp, &time);
-  
   display.init();
+
+  inputHandler.init(&settings, &temp, &time, &display);
   
   bluetooth.init(&temp, &ioController, &settings);
   

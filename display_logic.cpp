@@ -9,10 +9,12 @@ void DisplayLogic::init() {
   display.setHorizontalLine(2);
   display.render();
   
-  for (uint8_t i=0;i<logBufferSize;i++) logBuffer[i] = "";
+  //for (uint8_t i=0;i<logBufferSize;i++) logBuffer[i] = "";
 
   isFirstRender = true;
-  LogHandler::registerListener(this);
+//  LogHandler::registerListener(this);
+  jh.setFeedbackHandler(this);
+  jh.init();
 }
 
 void DisplayLogic::update() {
@@ -21,6 +23,8 @@ void DisplayLogic::update() {
       display.setLine(1, F("Fatal init error !"));
     }
     _updateStatusLine();
+    currentMenuLine = 4;
+    _refreshMenu();
     isFirstRender = false;
   } else {
     if (lastUpdate==0 || millis() - lastUpdate >= UPDATE_INTERVAL_MS) {      // last update check interval
@@ -28,6 +32,8 @@ void DisplayLogic::update() {
       lastUpdate = millis();
     }
   }
+  
+  jh.update();
   
   display.render();
 }
@@ -40,7 +46,7 @@ void DisplayLogic::_updateStatusLine() {
 
 
 void DisplayLogic::onMessage(String msg, LogHandler::LOG_TYPE type) {
-  String tmpMsg = "T ";
+  String tmpMsg = F("T ");
   tmpMsg.concat(millis());
   
   for (int i=0;i<logBufferSize-1;i++) {
@@ -50,5 +56,28 @@ void DisplayLogic::onMessage(String msg, LogHandler::LOG_TYPE type) {
   
   logBuffer[logBufferSize-1] = tmpMsg;
   display.setLine(SSD1306Text::lineCount-1, tmpMsg);
+}
+
+void DisplayLogic::simulateKey(uint8_t type, bool isDown) {
+  onKeyEvent((JoystickHandler::JoystickFeedbackHandler::KEY_TYPE)type, isDown);
+}
+
+void DisplayLogic::onKeyEvent(JoystickHandler::JoystickFeedbackHandler::KEY_TYPE type, bool isDown) {
+  if (!isDown) return;
+  if (type==KEY_DOWN) currentMenuLine++;
+  if (type==KEY_UP) currentMenuLine--;
+  _refreshMenu();
+}
+
+void DisplayLogic::_refreshMenu() {
+  setMenuLine(4, F("Settings"));
+  setMenuLine(5, F("Monitor"));
+  setMenuLine(6, F("Log Trace"));
+}
+
+void DisplayLogic::setMenuLine(uint8_t index, String menuName) {
+  String tmp = currentMenuLine==index ? "> " : "";
+  tmp.concat(menuName);
+  display.setLine(index, tmp);
 }
 

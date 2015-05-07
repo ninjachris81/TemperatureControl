@@ -12,7 +12,7 @@
 #define INPUT_X A0
 #define INPUT_Y A1
 #ifdef USE_BUTTON
-  #define INPUT_BUTTON 1
+  #define INPUT_BUTTON A2
 #endif
 
 #define CENTER_VALUE 518
@@ -22,9 +22,7 @@
 #define STATE_RIGHT 2
 #define STATE_UP 3
 #define STATE_DOWN 4
-#ifdef USE_BUTTON
-  #define STATE_BUTTON 5
-#endif
+#define STATE_BUTTON 5
 
 #define BIT_SET(a,b) ((a) |= (1<<(b)))
 #define BIT_CLEAR(a,b) ((a) &= ~(1<<(b)))
@@ -36,13 +34,24 @@ public:
 
   class JoystickFeedbackHandler {
     public:
+    
+    enum KEY_TYPE {
+      KEY_LEFT,
+      KEY_RIGHT,
+      KEY_UP,
+      KEY_DOWN,
+      KEY_BUTTON
+    };
+    
+    virtual void onKeyEvent(KEY_TYPE type, bool isDown) = 0;
+    
+    /*
     virtual void onLeft(bool isDown) = 0;
     virtual void onRight(bool isDown) = 0;
     virtual void onUp(bool isDown) = 0;
     virtual void onDown(bool isDown) = 0;
-#ifdef USE_BUTTON
     virtual void onPressed(bool isDown) = 0;
-#endif
+*/
   };
   
   void init();

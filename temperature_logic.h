@@ -3,12 +3,15 @@
 
 #include "globals.h"
 
-#include "dht11.h"
+#include "OneWire.h"
+#include "DallasTemperature.h"
 #include "iocontroller.h"
 #include "time_logic.h"
 
-#define DHT11_PIN_HC 4
-#define DHT11_PIN_W 2
+#define PIN_TEMP 7
+
+#define TEMP_INDEX_HC 0
+#define TEMP_INDEX_W 1
 
 #define MINUTE10_FACTOR 6
 
@@ -19,6 +22,9 @@
 
 class TemperatureLogic {
 public:
+  TemperatureLogic();
+  ~TemperatureLogic();
+
     struct TempSettingsStruct {
       int operatingTemp_HC;
       int operatingTemp_W;
@@ -36,8 +42,8 @@ public:
   int getTemperatureW();  
 
 private:
-  dht11 tempSensorHC;    // heat changer
-  dht11 tempSensorW;     // water 
+  OneWire *wire;
+  DallasTemperature *tempSensors;
   
   int currentTemperatureHC = 0;
   int currentTemperatureW = 0;

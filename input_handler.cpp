@@ -1,11 +1,12 @@
 #include "input_handler.h"
 #include "format_utils.h"
 
-void InputHandler::init(Settings* settings, TemperatureLogic* temperatureLogic, TimeLogic* timeLogic) {
+void InputHandler::init(Settings* settings, TemperatureLogic* temperatureLogic, TimeLogic* timeLogic, DisplayLogic* displayLogic) {
   Serial.begin(9600);
   this->settings = settings;
   this->temperatureLogic = temperatureLogic;
   this->timeLogic = timeLogic;
+  this->displayLogic = displayLogic;
 }
 
 void InputHandler::update() {
@@ -28,7 +29,7 @@ void InputHandler::update() {
           // set time
           timeLogic->save(v1, v2, v3);
         } else {
-          LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Error while parsing parameters"));
+          LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
         }        
       } else if (tmpBuffer.equals(F("temperature"))) {
           // read temp
@@ -40,7 +41,15 @@ void InputHandler::update() {
           // set temp
           this->temperatureLogic->simulateTemperature(v1, v2);
         } else {
-          LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Error while parsing parameters"));
+          LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
+        }        
+      } else if (tmpBuffer.startsWith(F("key"))) {
+        int v1, v2;
+        if (parseParameters2(tmpBuffer, 4, v1, v2)) {
+          // set temp
+          this->displayLogic->simulateKey(v1, v2);
+        } else {
+          LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
         }        
       }
       
