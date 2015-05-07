@@ -15,6 +15,8 @@ void DisplayLogic::init() {
 //  LogHandler::registerListener(this);
   jh.setFeedbackHandler(this);
   jh.init();
+  
+  InputHandler::registerListener(this);
 }
 
 void DisplayLogic::update() {
@@ -36,6 +38,25 @@ void DisplayLogic::update() {
   jh.update();
   
   display.render();
+}
+
+String DisplayLogic::getName() {
+  return DISPLAY_HANDLER_MODULE_NAME;
+}
+  
+bool DisplayLogic::onInput(String cmd) {
+  if (cmd.equals(F("KEY"))) {
+    int v1, v2;
+    if (InputHandler::parseParameters2(cmd.substring(4), v1, v2)) {
+      // set temp
+      simulateKey(v1, v2);
+    } else {
+      LogHandler::logMsg(DISPLAY_HANDLER_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
+    }
+    return true;
+  }
+  
+  return false;
 }
 
 void DisplayLogic::_updateStatusLine() {

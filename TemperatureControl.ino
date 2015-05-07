@@ -32,6 +32,7 @@ void setup() {
   LogHandler::logMsg(MAIN_MODULE_NAME, F("Temperature Control v0.1"));
   led.init();
   
+  settings.init();
   settings.loadSettings();
   ioController.init();
   time.init();
@@ -39,7 +40,7 @@ void setup() {
   wifi.init();
   display.init();
 
-  inputHandler.init(&settings, &temp, &time, &display);
+  inputHandler.init();
   
   bluetooth.init(&temp, &ioController, &settings);
   

@@ -1,6 +1,6 @@
 #include "log_handler.h"
 
-LogHandler::LogListener* LogHandler::_listeners[4];
+LogHandler::LogListener* LogHandler::_listeners[MAX_LOG_LISTENERS];
 uint8_t LogHandler::listenerCount = 0;
 LedLogic* LogHandler::ledLogic = NULL;
 bool LogHandler::hasFatalError = false;
@@ -81,6 +81,19 @@ void LogHandler::warning(String moduleName, String msg) {
 }
 
 void LogHandler::warning(String moduleName, String msg, int val) {
+  String str = moduleName;
+  str.concat(F("> WARN: "));
+  str.concat(msg);
+  str.concat(val);
+
+#ifdef DEBUG_PRINT
+  DEBUG_SERIAL.println(str);
+#endif
+
+  sendToListeners(str, WARN);
+}
+
+void LogHandler::warning(String moduleName, String msg, String val) {
   String str = moduleName;
   str.concat(F("> WARN: "));
   str.concat(msg);

@@ -10,6 +10,8 @@ void TimeLogic::init(){
   } else {
     LogHandler::fatal(TIME_MODULE_NAME, F("RTC not found !"));
   }
+  
+  InputHandler::registerListener(this);
 }
 
 void TimeLogic::update() {
@@ -18,6 +20,29 @@ void TimeLogic::update() {
     lastUpdate = millis();
   }
 }
+
+String TimeLogic::getName() {
+  return TIME_MODULE_NAME;
+}
+
+bool TimeLogic::onInput(String cmd) {
+  if (cmd.equals(F("GET"))) {
+    LogHandler::logMsg(TIME_MODULE_NAME, F("Current time is: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
+    return true;
+  } else if (cmd.startsWith(F("SET"))) {
+    int v1, v2, v3;
+    if (InputHandler::parseParameters3(cmd.substring(4), v1, v2, v3)) {
+      // set time
+      save(v1, v2, v3);
+    } else {
+      LogHandler::warning(TIME_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
+    }        
+    return true;
+  }
+  
+  return false;
+}
+
 
 void TimeLogic::save(uint8_t hour, uint8_t minute, uint8_t second) {
   LogHandler::logMsg(TIME_MODULE_NAME, F("Saving time"));

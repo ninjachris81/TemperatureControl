@@ -42,13 +42,38 @@ void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioContro
   */
   
 //  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Number of temp sensors found: "), tempSensors->getDeviceCount());
+  InputHandler::registerListener(this);
+}
+
+String TemperatureLogic::getName() {
+  return TEMPERATURE_MODULE_NAME;
+}
+
+bool TemperatureLogic::onInput(String cmd) {
+  if (cmd.equals(F("GET"))) {
+    // read temp
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("HC temperature is "), getTemperatureHC());
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("W temperature is "), getTemperatureW());
+    return true;
+  } else if (cmd.startsWith(F("SET"))) {
+    int v1, v2;
+    if (InputHandler::parseParameters2(cmd, v1, v2)) {
+      // set temp
+      simulateTemperature(v1, v2);
+    } else {
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
+    }        
+    return true;
+  }
+  
+  return false;
 }
 
 void TemperatureLogic::update() {
   bool wasUpdated;
 
   if (lastUpdate==0 || millis() - lastUpdate >= CHECK_INTERVAL_MIN_MS) {      // last update check interval
-    byte currentMinute10 = (RTC.minute * MINUTE10_FACTOR) + RTC.minute;
+    byte currentMinute10 = (RTC.hour * MINUTE10_FACTOR) + (RTC.minute / (60/MINUTE10_FACTOR));
     if (currentMinute10 > settingsData.activeTimeStart10min && currentMinute10 < settingsData.activeTimeEnd10min) {    // in active timeframe ?
       if (_updateData(false, wasUpdated)) {
         if (wasUpdated) {
@@ -72,7 +97,7 @@ void TemperatureLogic::update() {
       /*
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, start: "), settingsData.activeTimeStart10min);
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, end: "), settingsData.activeTimeEnd10min);
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, start current: "), RTC.minute * MINUTE10_FACTOR);
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, start current: "), currentMinute10);
       */
     }
     

@@ -1,6 +1,26 @@
 #include "settings.h"
 #include "globals.h"
 
+void Settings::init() {
+  InputHandler::registerListener(this);
+}
+
+String Settings::getName() {
+  return SETTINGS_MODULE_NAME;
+}
+
+bool Settings::onInput(String cmd) {
+  if (cmd.equals(F("SAVE"))) {
+    saveSettings();
+    return true;
+  } else if (cmd.equals(F("DEFAULT"))) {
+    defaultSettings();
+    return true;
+  }
+  
+  return false;
+}
+
 void Settings::loadSettings() {
   LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Loading settings"));
 

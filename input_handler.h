@@ -2,33 +2,37 @@
 #define input_handler_h
 
 #include "globals.h"
-#include "settings.h"
-#include "temperature_logic.h"
-#include "time_logic.h"
-#include "display_logic.h"
 
 #define INPUT_HANDLER_MODULE_NAME F("IH")
 
 #define ERROR_WHILE_PARSING_PARAMS F("Error while parsing parameters")
 
+#define MAX_INPUT_LISTENERS 16
+
 class InputHandler {
 public:
-  void init(Settings* settings, TemperatureLogic* temperatureLogic, TimeLogic* timeLogic, DisplayLogic* displayLogic);
+  class InputListener {
+    public:
+      virtual String getName() = 0;
+      virtual bool onInput(String cmd) = 0;
+  };
+
+  void init();
   
   void update();
   
+  static void registerListener(InputListener* listener);
+  
+  static bool parseParameters2(String bufferStr, int &v1, int &v2);
+
+  static bool parseParameters3(String bufferStr, int &v1, int &v2, int &v3);
+
 private:
   String tmpBuffer;
   
-  Settings* settings;
-  TemperatureLogic* temperatureLogic;
-  TimeLogic* timeLogic;
-  DisplayLogic* displayLogic;
+  static InputListener* listeners[MAX_INPUT_LISTENERS];
+  static uint8_t listenerCount;
   
-  bool parseParameters2(String &bufferStr, int index, int &v1, int &v2);
-
-  bool parseParameters3(String &bufferStr, int index, int &v1, int &v2, int &v3);
-
 };
 
 

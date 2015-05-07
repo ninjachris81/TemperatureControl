@@ -4,6 +4,7 @@
 #include <EEPROM.h>
 
 #include "temperature_logic.h"
+#include "input_handler.h"
 
 #define CONFIG_VERSION 1
 #define CONFIG_START 32
@@ -11,9 +12,12 @@
 
 #define SETTINGS_MODULE_NAME F("SETT")
 
-class Settings {
+class Settings : public InputHandler::InputListener {
   public:
 
+  /*virtual*/ String getName();
+  /*virtual*/ bool onInput(String cmd);
+  
 /*  
     struct SettingsStruct {
       char configVersion;
@@ -32,12 +36,15 @@ class Settings {
       unsigned char configVersion;
       TemperatureLogic::TempSettingsStruct temp;
     } settingsData;
+    
+    void init();
 
     void loadSettings();
     void saveSettings();
-    
+
+private:
     void defaultSettings();
-  
+    
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include "DallasTemperature.h"
 #include "iocontroller.h"
 #include "time_logic.h"
+#include "input_handler.h"
 
 #define PIN_TEMP 7
 
@@ -20,7 +21,7 @@
 
 #define TEMPERATURE_MODULE_NAME F("TEMP")
 
-class TemperatureLogic {
+class TemperatureLogic : public InputHandler::InputListener {
 public:
   TemperatureLogic();
   ~TemperatureLogic();
@@ -36,7 +37,8 @@ public:
   void init(TempSettingsStruct &settings, IOController *ioController);
   void update();
   
-  void simulateTemperature(int currentTemperatureHC, int currentTemperatureW);
+  /*virtual*/ String getName();
+  /*virtual*/ bool onInput(String cmd);
   
   int getTemperatureHC();
   int getTemperatureW();  
@@ -54,6 +56,8 @@ private:
   IOController *ioController;
 
   bool _updateData(bool forceUpdate, bool &hasUpdated);
+  
+  void simulateTemperature(int currentTemperatureHC, int currentTemperatureW);
   
 };
 

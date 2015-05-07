@@ -53,6 +53,8 @@ public:
 
   static void warning(String moduleName, String msg, int val);
 
+  static void warning(String moduleName, String msg, String val);
+
   static void fatal(String moduleName, String msg);
   
   static bool registerListener(LogHandler::LogListener* listener);
