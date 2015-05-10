@@ -7,11 +7,13 @@
 #include "WProgram.h"
 #endif
 
-#define PIN_PUMP 7
+#include "input_handler.h"
+
+#define PIN_PUMP 2
 #define PIN_PUMP_INDEX 0
 #define IOC_MODULE_NAME F("IOC")
 
-class IOController {
+class IOController : public InputHandler::InputListener {
 public:
   
   void init();
@@ -21,6 +23,9 @@ public:
   void toggle(int pin, int pinIndex);
   
   byte getPinState();
+  
+  /*virtual*/ String getName();
+  /*virtual*/ bool onInput(String cmd);
   
 private:
   byte pinState = 0;

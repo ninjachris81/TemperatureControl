@@ -11,10 +11,8 @@
 #include "time_logic.h"
 #include "temperature_logic.h"
 #include "iocontroller.h"
-#include "wifi_logic.h"
 #include "led_logic.h"
 #include "input_handler.h"
-#include "display_logic.h"
 #include "bluetooth_logic.h"
 
 LedLogic led;
@@ -22,9 +20,7 @@ Settings settings;
 TimeLogic time;
 TemperatureLogic temp;
 IOController ioController;
-WifiLogic wifi;
 InputHandler inputHandler;
-DisplayLogic display;
 BluetoothLogic bluetooth;
 
 void setup() {
@@ -37,8 +33,6 @@ void setup() {
   ioController.init();
   time.init();
   temp.init(settings.settingsData.temp, &ioController);
-  wifi.init();
-  display.init();
 
   inputHandler.init();
   
@@ -56,8 +50,6 @@ void loop() {
   
   inputHandler.update();
   
-  display.update();
-  
   temp.update();
 
   time.update();
@@ -66,7 +58,5 @@ void loop() {
 
   if (!LogHandler::hasFatalError) {
     temp.update();
-    
-    wifi.update();
   }
 }
