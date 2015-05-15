@@ -18,18 +18,23 @@
 #define BT_TX_PIN 11
 #define BT_BAUD_RATE 9600
 
-#define INPUT_HANDLER_MODULE_NAME F("BT")
+#define BT_MODULE_NAME F("BT")
 
 #define UPDATE_INTERVAL_MS 2000
 
 #define BT_NAME F("TEMP_CTRL")
 
-class BluetoothLogic : public LogHandler::LogListener {
+#define BT_CMD_SEP F(";")
+
+class BluetoothLogic : public LogHandler::LogListener, public InputHandler::InputListener  {
 public:
   void init(TemperatureLogic *tempLogic, IOController* ioController, Settings *settings);
   
   void update();
 
+  /*virtual*/ String getName();
+  /*virtual*/ bool onInput(String cmd);
+  
   /*virtual*/ void onMessage(String msg, LogHandler::LOG_TYPE type=LogHandler::LOG);
   
 private:
@@ -39,8 +44,9 @@ private:
   IOController* ioController;
   Settings *settings;
   
-  char currentMode = '0';
-
+  bool sendLogUpdates;
+  bool sendDataUpdates;
+  
   void sendData();
 
 };

@@ -55,6 +55,8 @@ void loop() {
   time.update();
   
   bluetooth.update();
+  
+  ioController.update();
 
   if (!LogHandler::hasFatalError) {
     temp.update();

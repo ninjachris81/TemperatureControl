@@ -27,10 +27,15 @@ public:
   ~TemperatureLogic();
 
     struct TempSettingsStruct {
-      int operatingTemp_HC;
-      int operatingTemp_W;
-      byte activeTimeStart10min;
-      byte activeTimeEnd10min;
+      int operatingTempMin_HC;
+      int operatingTempMin_W;
+      byte operatingStart10Minutes;
+      byte operatingEnd10Minutes;
+      
+      int preheatingTempMin_HC;
+      byte preheatingStart10Minutes;
+      byte preheatingDurationMinutes;
+      
       int tempSwitches1;
     } settingsData;
 
@@ -55,7 +60,11 @@ private:
   
   IOController *ioController;
 
-  bool _updateData(bool forceUpdate, bool &hasUpdated);
+  void _updateData(bool forceUpdate);
+  void _updateData(bool forceUpdate, bool &hasUpdated);
+  
+  void checkDefault(bool &enablePumpW, bool &enablePumpHC);
+  void checkPreheating(bool &enablePumpW, bool &enablePumpHC);
   
   void simulateTemperature(int currentTemperatureHC, int currentTemperatureW);
   

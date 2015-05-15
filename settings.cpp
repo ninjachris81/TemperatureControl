@@ -50,10 +50,15 @@ void Settings::defaultSettings() {
   LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Setting to default"));
   
   settingsData.configVersion = CONFIG_VERSION;
-  settingsData.temp.operatingTemp_HC = 50;
-  settingsData.temp.operatingTemp_W = 35;
-  settingsData.temp.activeTimeStart10min = 42;    // 7 am (7 * 6)
-  settingsData.temp.activeTimeEnd10min = 120;      // 20 pm (20 * 6)
+  
+  settingsData.temp.operatingTempMin_HC = 30;
+  settingsData.temp.operatingTempMin_W = 28;
+  settingsData.temp.operatingStart10Minutes = 42;  // 7 am (7 * 6)
+  settingsData.temp.operatingEnd10Minutes = 126;  // 21 pm (21 * 6)
+  
+  settingsData.temp.preheatingTempMin_HC = 38;
+  settingsData.temp.preheatingStart10Minutes = 42;    // 7 am (7 * 6)
+  settingsData.temp.preheatingDurationMinutes = 5;      // 5 min
   settingsData.temp.tempSwitches1 = 0;
  
 }

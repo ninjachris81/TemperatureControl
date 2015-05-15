@@ -21,8 +21,14 @@ public:
   
   void update();
   
+  void executeCmd(String cmd);
+  
   static void registerListener(InputListener* listener);
   
+  static bool parseParameters2(String bufferStr, String &v1, String &v2);
+
+  static bool parseParameters2(String bufferStr, String &v1, int &v2);
+
   static bool parseParameters2(String bufferStr, int &v1, int &v2);
 
   static bool parseParameters3(String bufferStr, int &v1, int &v2, int &v3);

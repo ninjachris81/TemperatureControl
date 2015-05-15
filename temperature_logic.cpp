@@ -29,7 +29,8 @@ void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioContro
   }
   wire->reset_search();
 
-  if (!_updateData(true, wasUpdated)) {
+  _updateData(true, wasUpdated);
+  if (!wasUpdated) {
     LogHandler::fatal(TEMPERATURE_MODULE_NAME, F("Failed to read from temp sensors !"));
   }
   
@@ -70,44 +71,73 @@ bool TemperatureLogic::onInput(String cmd) {
 }
 
 void TemperatureLogic::update() {
-  bool wasUpdated;
-
   if (lastUpdate==0 || millis() - lastUpdate >= CHECK_INTERVAL_MIN_MS) {      // last update check interval
-    byte currentMinute10 = (RTC.hour * MINUTE10_FACTOR) + (RTC.minute / (60/MINUTE10_FACTOR));
-    if (currentMinute10 > settingsData.activeTimeStart10min && currentMinute10 < settingsData.activeTimeEnd10min) {    // in active timeframe ?
-      if (_updateData(false, wasUpdated)) {
-        if (wasUpdated) {
-          bool enablePump = false;
-        
-          if (settingsData.operatingTemp_HC<currentTemperatureHC) {
-            enablePump = true;
-          } else {
-            if (settingsData.operatingTemp_W<currentTemperatureW) enablePump = true;
-          }
-          
-          LogHandler::logMsg(TEMPERATURE_MODULE_NAME, (enablePump ? F("Enabling pump") : F("Disabling pump")));
-          ioController->setValue(PIN_PUMP, PIN_PUMP_INDEX, enablePump);
-        } else {
-          //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Skipped update of temp sensor data"));
-        }
-      } else {
-        LogHandler::warning(TEMPERATURE_MODULE_NAME, F("Failed to update data"));
-      }
-    } else {
-      /*
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, start: "), settingsData.activeTimeStart10min);
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, end: "), settingsData.activeTimeEnd10min);
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Out of time frame, start current: "), currentMinute10);
-      */
-    }
+    _updateData(false);    // update temp sensors
+
+    bool enablePumpW = false;
+    bool enablePumpHC = false;
     
+    checkDefault(enablePumpW, enablePumpHC);
+    if (!enablePumpW || !enablePumpHC) checkPreheating(enablePumpW, enablePumpHC);
+
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpW: "), enablePumpW ? ENABLED_STRING : DISABLED_STRING);
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpHC: "), enablePumpHC ? ENABLED_STRING : DISABLED_STRING);
+    
+    ioController->setValue(PIN_PUMP_WATER, PIN_PUMP_WATER_INDEX, enablePumpW);
+    ioController->setValue(PIN_PUMP_HC, PIN_PUMP_HC_INDEX, enablePumpHC);
+
     lastUpdate = millis();
   } else {
 //    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Waiting for update, lu: "), lastUpdate);
   }
 }
 
-bool TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdated) {
+void TemperatureLogic::checkDefault(bool &enablePumpW, bool &enablePumpHC) {
+    if (ioController->getValue(PIN_FLOW_SWITCH_INDEX)) {
+      // check if flow switch is on
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Flow Switch is On"));
+      enablePumpW = true;
+      enablePumpHC = true;
+    } else {
+      // check maintain temp mode
+      byte currentMinute10 = (RTC.hour * MINUTE10_FACTOR) + (RTC.minute / (60/MINUTE10_FACTOR));
+      if (currentMinute10 >= settingsData.operatingStart10Minutes && currentMinute10 < settingsData.operatingEnd10Minutes) {
+        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain temp mode active"));
+        enablePumpW = currentTemperatureW<settingsData.operatingTempMin_W;
+        enablePumpHC = currentTemperatureHC<settingsData.operatingTempMin_HC;
+//        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain temp w min: "), settingsData.operatingTempMin_W);
+//        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain temp hc min: "), settingsData.operatingTempMin_HC);
+      } else {
+        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain - Out of time frame, start: "), settingsData.operatingStart10Minutes);
+        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain - Out of time frame, end: "), settingsData.operatingEnd10Minutes);
+        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain - Out of time frame, current: "), currentMinute10);
+      }
+    }
+}
+
+void TemperatureLogic::checkPreheating(bool &enablePumpW, bool &enablePumpHC) {
+    int currentMinute = (RTC.hour * 60) + RTC.minute;
+    int currentPreheatingStart = settingsData.preheatingStart10Minutes * MINUTE10_FACTOR;
+    int currentPreheatingEnd = currentPreheatingStart + settingsData.preheatingDurationMinutes;
+    
+    if (currentMinute >= currentPreheatingStart && currentMinute < currentPreheatingEnd) {    // in active timeframe ?
+      enablePumpHC = settingsData.preheatingTempMin_HC<currentTemperatureHC;
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating mode active, current HC temp: "), currentTemperatureHC);
+    } else {
+      /*
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating - Out of time frame, start: "), currentPreheatingStart);
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating - Out of time frame, end: "), currentPreheatingEnd);
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating - Out of time frame, current: "), currentMinute);
+      */
+    }
+}
+
+void TemperatureLogic::_updateData(bool forceUpdate) {
+  bool wasUpdated;
+  _updateData(forceUpdate, wasUpdated);
+}
+
+void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdated) {
   hasUpdated = false;
 
   if (forceUpdate || lastTempCheck==0 || (millis() - lastTempCheck) >= CHECK_TEMP_INTERVAL_MIN_MS) {    // check sensor update interval
@@ -125,7 +155,6 @@ bool TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdated) {
   } else {
     //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Waiting for update, ltc: "), lastTempCheck);
   }
-  return true;
 }
 
 void TemperatureLogic::simulateTemperature(int currentTemperatureHC, int currentTemperatureW) {
