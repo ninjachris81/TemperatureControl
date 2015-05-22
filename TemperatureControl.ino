@@ -12,7 +12,7 @@
 #include "temperature_logic.h"
 #include "iocontroller.h"
 #include "led_logic.h"
-#include "input_handler.h"
+#include "serial_api.h"
 #include "bluetooth_logic.h"
 
 LedLogic led;
@@ -20,7 +20,7 @@ Settings settings;
 TimeLogic time;
 TemperatureLogic temp;
 IOController ioController;
-InputHandler inputHandler;
+SerialApi serialApi;
 BluetoothLogic bluetooth;
 
 void setup() {
@@ -34,9 +34,9 @@ void setup() {
   time.init();
   temp.init(settings.settingsData.temp, &ioController);
 
-  inputHandler.init();
+  serialApi.init();
   
-  bluetooth.init(&temp, &ioController, &settings);
+  bluetooth.init();
   
   if (!LogHandler::hasFatalError) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init successfully"));
@@ -48,7 +48,7 @@ void setup() {
 void loop() {
   led.update();
   
-  inputHandler.update();
+  serialApi.update();
   
   temp.update();
 

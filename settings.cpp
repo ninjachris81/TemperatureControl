@@ -1,5 +1,6 @@
 #include "settings.h"
 #include "globals.h"
+#include "output_handler.h"
 
 void Settings::init() {
   InputHandler::registerListener(this);
@@ -15,6 +16,32 @@ bool Settings::onInput(String cmd) {
     return true;
   } else if (cmd.equals(F("DEFAULT"))) {
     defaultSettings();
+    return true;
+  } else if (cmd.equals(F("GET"))) {
+    String tmpStr = "CS ";
+    
+    tmpStr.concat(settingsData.temp.operatingTempMin_HC);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.temp.operatingTempMin_W);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.temp.operatingStart10Minutes);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.temp.operatingEnd10Minutes);
+    tmpStr.concat(F("&"));
+    
+    tmpStr.concat(settingsData.temp.preheatingTempMin_HC);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.temp.preheatingTempMin_W);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.temp.preheatingStart10Minutes);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.temp.preheatingDurationMinutes);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.temp.tempSwitches1);
+    
+    OutputHandler::sendCmd(SETTINGS_MODULE_NAME, tmpStr);
+    
+    LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Current settings: "), tmpStr);
     return true;
   }
   
@@ -57,6 +84,7 @@ void Settings::defaultSettings() {
   settingsData.temp.operatingEnd10Minutes = 126;  // 21 pm (21 * 6)
   
   settingsData.temp.preheatingTempMin_HC = 38;
+  settingsData.temp.preheatingTempMin_W = 32;
   settingsData.temp.preheatingStart10Minutes = 42;    // 7 am (7 * 6)
   settingsData.temp.preheatingDurationMinutes = 5;      // 5 min
   settingsData.temp.tempSwitches1 = 0;

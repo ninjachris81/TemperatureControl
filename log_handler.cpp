@@ -125,7 +125,7 @@ void LogHandler::sendToListeners(String msg, LogHandler::LOG_TYPE type) {
   if (listenerCount>0) {
     for (uint8_t i=0;i<MAX_LOG_LISTENERS;i++) {
       if (_listeners[i]!=NULL) {
-        _listeners[i]->onMessage(msg, type);
+        _listeners[i]->onLogMessage(msg, type);
       }
     }
   }

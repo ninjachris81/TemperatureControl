@@ -4,30 +4,14 @@
 InputHandler::InputListener* InputHandler::listeners[MAX_INPUT_LISTENERS];
 uint8_t InputHandler::listenerCount = 0;
 
-
-void InputHandler::init() {
-  Serial.begin(9600);
-}
-
-void InputHandler::update() {
-  if (Serial.available() > 0) {
-    char c = Serial.read();
-    if (c!=';') {
-      tmpBuffer.concat(c);
-    } else {
-      executeCmd(tmpBuffer);
-      tmpBuffer = "";
-    }
-  }
-}
-
 void InputHandler::executeCmd(String cmd) {
-  int i = tmpBuffer.indexOf(" ");
+  int i = cmd.indexOf(" ");
   
   if (i>=0) {
-    String receiver = tmpBuffer.substring(0, i);
+    String receiver = cmd.substring(0, i);
     InputListener *target = NULL;
     
+    // search for target
     for (uint8_t o=0;o<listenerCount;o++) {
       if (listeners[o]->getName().equals(receiver)) {
         target = listeners[o];
@@ -37,16 +21,16 @@ void InputHandler::executeCmd(String cmd) {
     
     if (target!=NULL) {
       LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Sending command to "), receiver);
-      tmpBuffer = tmpBuffer.substring(i+1);
-      tmpBuffer.trim();
-      if (!target->onInput(tmpBuffer)) {
-        LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Invalid command: "), tmpBuffer);
+      cmd = cmd.substring(i+1);
+      cmd.trim();
+      if (!target->onInput(cmd)) {
+        LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Invalid command: "), cmd);
       }
     } else {
       LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Receiver is invalid: "), receiver);
     }
   } else {
-    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Invalid command format "), tmpBuffer);
+    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Invalid command format "), cmd);
   }
 }
 

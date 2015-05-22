@@ -17,11 +17,7 @@ public:
       virtual bool onInput(String cmd) = 0;
   };
 
-  void init();
-  
-  void update();
-  
-  void executeCmd(String cmd);
+  static void executeCmd(String cmd);
   
   static void registerListener(InputListener* listener);
   
@@ -34,8 +30,6 @@ public:
   static bool parseParameters3(String bufferStr, int &v1, int &v2, int &v3);
 
 private:
-  String tmpBuffer;
-  
   static InputListener* listeners[MAX_INPUT_LISTENERS];
   static uint8_t listenerCount;
   

@@ -29,7 +29,7 @@ public:
       uint8_t getIndex() { return index; }
       void setIndex(uint8_t index) { this->index = index; }
       
-      virtual void onMessage(String msg, LOG_TYPE type=LOG);
+      virtual void onLogMessage(String msg, LOG_TYPE type=LOG);
       virtual String getModuleNameFilter() { return ""; }
       
     private:

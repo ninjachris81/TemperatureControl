@@ -9,13 +9,12 @@
 #include "WProgram.h"
 #endif
 
-#include "temperature_logic.h"
-#include "iocontroller.h"
-#include "settings.h"
 #include "log_handler.h"
+#include "input_handler.h"
+#include "output_handler.h"
 
-#define BT_RX_PIN 10
-#define BT_TX_PIN 11
+#define BT_TX_PIN 10
+#define BT_RX_PIN 11
 #define BT_BAUD_RATE 9600
 
 #define BT_MODULE_NAME F("BT")
@@ -26,29 +25,27 @@
 
 #define BT_CMD_SEP F(";")
 
-class BluetoothLogic : public LogHandler::LogListener, public InputHandler::InputListener  {
+#define BT_AUTH_HASH 14624
+
+class BluetoothLogic : public LogHandler::LogListener, public InputHandler::InputListener, public OutputHandler::OutputSink  {
 public:
-  void init(TemperatureLogic *tempLogic, IOController* ioController, Settings *settings);
+  void init();
   
   void update();
 
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
   
-  /*virtual*/ void onMessage(String msg, LogHandler::LOG_TYPE type=LogHandler::LOG);
+  /*virtual*/ void onLogMessage(String msg, LogHandler::LOG_TYPE type=LogHandler::LOG);
   
+  /*virtual*/ void sendCmd(String sender, String cmd);
+
 private:
-  unsigned long lastUpdate = 0;
-  
-  TemperatureLogic *tempLogic;
-  IOController* ioController;
-  Settings *settings;
-  
   bool sendLogUpdates;
   bool sendDataUpdates;
   
-  void sendData();
-
+  bool isAuthenticated;
+  
 };
 
 

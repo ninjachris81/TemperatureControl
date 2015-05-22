@@ -1,6 +1,7 @@
 #include "time_logic.h"
 #include "globals.h"
 #include "format_utils.h"
+#include "output_handler.h"
 
 void TimeLogic::init(){
   if (RTC.isPresent()!=0) {
@@ -27,6 +28,9 @@ String TimeLogic::getName() {
 
 bool TimeLogic::onInput(String cmd) {
   if (cmd.equals(F("GET"))) {
+    String tmpStr = F("CT ");
+    tmpStr.concat((RTC.hour * 24 * 60) + (RTC.minute * 60) + RTC.second);
+    OutputHandler::sendCmd(TIME_MODULE_NAME, tmpStr);
     LogHandler::logMsg(TIME_MODULE_NAME, F("Current time is: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
     return true;
   } else if (cmd.startsWith(F("SET"))) {

@@ -33,6 +33,7 @@ public:
       byte operatingEnd10Minutes;
       
       int preheatingTempMin_HC;
+      int preheatingTempMin_W;
       byte preheatingStart10Minutes;
       byte preheatingDurationMinutes;
       
@@ -45,9 +46,6 @@ public:
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
   
-  int getTemperatureHC();
-  int getTemperatureW();  
-
 private:
   OneWire *wire;
   DallasTemperature *tempSensors;

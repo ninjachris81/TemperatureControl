@@ -1,5 +1,6 @@
 #include "iocontroller.h"
 #include "globals.h"
+#include "output_handler.h"
 
 void IOController::init() {
   LogHandler::logMsg(IOC_MODULE_NAME, F("IO Controller init"));
@@ -55,13 +56,20 @@ bool IOController::onInput(String cmd) {
   int v1, v2;
   
   if (cmd.equals(F("GET"))) {
-      bool enabled1 = bitRead(PIN_PUMP_HC, PIN_PUMP_HC_INDEX);
-      bool enabled2 = bitRead(PIN_PUMP_WATER, PIN_PUMP_WATER_INDEX);
-      
-      _printState(F("TANK PUMP"), enabled1);
-      _printState(F("WATER PUMP"), enabled2);
-      _printState(F("FLOW SWITCH"), bitRead(this->pinState, PIN_FLOW_SWITCH_INDEX));
-      return true;
+    String tmpStr = F("IOST ");
+    
+    tmpStr.concat(getValue(PIN_PUMP_HC_INDEX) ? 1 : 0);
+    tmpStr.concat(F(" "));
+    tmpStr.concat(getValue(PIN_PUMP_WATER_INDEX) ? 1 : 0);
+    tmpStr.concat(F(" "));
+    tmpStr.concat(getValue(PIN_FLOW_SWITCH_INDEX) ? 1 : 0);
+    
+    OutputHandler::sendCmd(IOC_MODULE_NAME, tmpStr);
+
+    _printState(F("TANK PUMP"), getValue(PIN_PUMP_HC_INDEX));
+    _printState(F("WATER PUMP"), getValue(PIN_PUMP_WATER_INDEX));
+    _printState(F("FLOW SWITCH"), getValue(PIN_FLOW_SWITCH_INDEX));
+    return true;
   } else {
     if (InputHandler::parseParameters2(cmd, v1, v2)) {
       uint8_t pump;

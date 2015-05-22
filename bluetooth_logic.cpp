@@ -1,13 +1,9 @@
 #include "bluetooth_logic.h"
 #include "globals.h"
 
-SoftwareSerial BT(BT_RX_PIN, BT_TX_PIN);
+SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
-void BluetoothLogic::init(TemperatureLogic *tempLogic, IOController* ioController, Settings *settings) {
-  this->tempLogic = tempLogic;
-  this->ioController = ioController;
-  this->settings = settings;
-  
+void BluetoothLogic::init() {
   LogHandler::logMsg(BT_MODULE_NAME, F("Activating BT"));
   BT.begin(BT_BAUD_RATE);
   BT.setTimeout(2000);
@@ -20,8 +16,11 @@ void BluetoothLogic::init(TemperatureLogic *tempLogic, IOController* ioControlle
   sendLogUpdates = false;
   sendDataUpdates = true;
   
+  isAuthenticated = false;
+  
   LogHandler::registerListener(this);
   InputHandler::registerListener(this);
+  OutputHandler::registerSink(this);
 }
 
 String BluetoothLogic::getName() {
@@ -40,59 +39,59 @@ bool BluetoothLogic::onInput(String cmd) {
       sendDataUpdates = (v2==1);
       LogHandler::logMsg(BT_MODULE_NAME, F("Setting data updates to: "), sendDataUpdates ? ENABLED_STRING : DISABLED_STRING);
       return true;
+    } else if (v1.equals(F("AUTH"))) {
+      isAuthenticated = (v2==BT_AUTH_HASH);
+      LogHandler::logMsg(BT_MODULE_NAME, F("BT is authenticated: "), isAuthenticated ? ENABLED_STRING : DISABLED_STRING);
+      return true;
     }
   }
+  
   return false;
+}
+
+void BluetoothLogic::sendCmd(String sender, String cmd) {
+  if (isAuthenticated) {
+    LogHandler::logMsg(BT_MODULE_NAME, F("Sending cmd:"), cmd);
+    BT.print(sender);
+    BT.print(F(" "));
+    BT.print(cmd);
+    BT.print(BT_CMD_SEP);
+    BT.flush();
+  } else {
+    LogHandler::logMsg(BT_MODULE_NAME, F("Cannot send command - not authenticated !"), cmd);
+  }
 }
 
 void BluetoothLogic::update() {
   if (BT.available()) {
     String cmd = BT.readStringUntil(';');
-    
-  }
-
-  if (lastUpdate==0 || millis() - lastUpdate >= UPDATE_INTERVAL_MS) {      // last update check interval
-    if (sendDataUpdates) sendData();
-    lastUpdate = millis();
+    cmd.substring(0, cmd.length()-1);
+    InputHandler::executeCmd(cmd);
   }
 }
 
-void BluetoothLogic::sendData() {
-  BT.print(F("TEMP "));
-  BT.print(tempLogic->getTemperatureHC());
-  BT.print(F(" "));
-  BT.print(tempLogic->getTemperatureW());
-  BT.println(BT_CMD_SEP);
-  
-  BT.print(F("IO "));
-  BT.print(ioController->getPinState(), HEX);
-  BT.println(BT_CMD_SEP);
+void BluetoothLogic::onLogMessage(String msg, LogHandler::LOG_TYPE type) {
+  msg.replace(' ', '_');
 
-  BT.print(F("TIME "));
-  BT.print((RTC.hour * 24 * 60) + (RTC.minute * 60) + RTC.second);
-  BT.println(BT_CMD_SEP);
-}
-
-void BluetoothLogic::onMessage(String msg, LogHandler::LOG_TYPE type) {
-  String tStr;
+  String cmdStr = F("LOG ");
   
   if (sendLogUpdates) {  
     switch(type) {
       case LogHandler::LOG:
-        tStr = F("LOG ");
+        cmdStr = F("L ");
         break;
       case LogHandler::WARN:
-        tStr = F("WARN ");
+        cmdStr = F("W ");
         break;
       case LogHandler::FATAL:
-        tStr = F("FATAL ");
+        cmdStr = F("F ");
         break;
       default:
-        tStr = F("UNKNOWN ");
+        cmdStr = F("U ");
         break;
     }
     
-    BT.print(tStr);
-    BT.println(msg);
+    cmdStr.concat(msg);
+    OutputHandler::sendCmd(BT_MODULE_NAME, cmdStr);
   }
 }

@@ -1,5 +1,6 @@
 #include "temperature_logic.h"
 #include "settings.h"
+#include "output_handler.h"
 
 TemperatureLogic::TemperatureLogic() {
   this->wire = new OneWire(PIN_TEMP);
@@ -53,8 +54,16 @@ String TemperatureLogic::getName() {
 bool TemperatureLogic::onInput(String cmd) {
   if (cmd.equals(F("GET"))) {
     // read temp
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("HC temperature is "), getTemperatureHC());
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("W temperature is "), getTemperatureW());
+    
+    String tmpCmd = F("CT ");
+    tmpCmd.concat(currentTemperatureHC);
+    tmpCmd.concat(F(" "));
+    tmpCmd.concat(currentTemperatureW);
+    
+    OutputHandler::sendCmd(TEMPERATURE_MODULE_NAME, tmpCmd);
+    
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("HC temperature is "), currentTemperatureHC);
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("W temperature is "), currentTemperatureW);
     return true;
   } else if (cmd.startsWith(F("SET"))) {
     int v1, v2;
@@ -80,8 +89,8 @@ void TemperatureLogic::update() {
     checkDefault(enablePumpW, enablePumpHC);
     if (!enablePumpW || !enablePumpHC) checkPreheating(enablePumpW, enablePumpHC);
 
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpW: "), enablePumpW ? ENABLED_STRING : DISABLED_STRING);
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpHC: "), enablePumpHC ? ENABLED_STRING : DISABLED_STRING);
+//    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpW: "), enablePumpW ? ENABLED_STRING : DISABLED_STRING);
+//    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpHC: "), enablePumpHC ? ENABLED_STRING : DISABLED_STRING);
     
     ioController->setValue(PIN_PUMP_WATER, PIN_PUMP_WATER_INDEX, enablePumpW);
     ioController->setValue(PIN_PUMP_HC, PIN_PUMP_HC_INDEX, enablePumpHC);
@@ -95,7 +104,7 @@ void TemperatureLogic::update() {
 void TemperatureLogic::checkDefault(bool &enablePumpW, bool &enablePumpHC) {
     if (ioController->getValue(PIN_FLOW_SWITCH_INDEX)) {
       // check if flow switch is on
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Flow Switch is On"));
+//      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Flow Switch is On"));
       enablePumpW = true;
       enablePumpHC = true;
     } else {
@@ -122,7 +131,9 @@ void TemperatureLogic::checkPreheating(bool &enablePumpW, bool &enablePumpHC) {
     
     if (currentMinute >= currentPreheatingStart && currentMinute < currentPreheatingEnd) {    // in active timeframe ?
       enablePumpHC = settingsData.preheatingTempMin_HC<currentTemperatureHC;
+      enablePumpW = settingsData.preheatingTempMin_W<currentTemperatureW;
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating mode active, current HC temp: "), currentTemperatureHC);
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating mode active, current W temp: "), currentTemperatureW);
     } else {
       /*
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating - Out of time frame, start: "), currentPreheatingStart);
@@ -162,13 +173,6 @@ void TemperatureLogic::simulateTemperature(int currentTemperatureHC, int current
   this->currentTemperatureHC = currentTemperatureHC;
   LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simulating temperature W to "), currentTemperatureW);
   this->currentTemperatureW = currentTemperatureW;
-}
-
-int TemperatureLogic::getTemperatureHC() {
-  return this->currentTemperatureHC;
-}
-int TemperatureLogic::getTemperatureW() {
-  return this->currentTemperatureW;
 }
 
 
