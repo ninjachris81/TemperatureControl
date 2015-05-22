@@ -1,0 +1,154 @@
+<html>
+	<head>
+		<link href="jquery-ui.min.css" rel="stylesheet">
+		<link href="jquery-ui-slider-pips.css" rel="stylesheet">
+		<link href="css/main.css" rel="stylesheet">
+	</head>
+	<body>
+		<h2 class="demoHeaders">Temperature Control</h2>
+		<div id="accordion">
+			<h3>Monitor</h3>
+			<div>
+				<img id="iconW" src="images/wasserhahn.png">
+				<img id="workingW" src="images/gears-animated.gif">
+				<img id="waterFlow" src="images/water_drop.gif">
+				<div id="tempW">
+					<div id="tempValueW" class="tempValue">N/A</div>
+					<div id="tempUnitW" class="tempUnit">&deg;</div>
+				</div>
+				<div id="radioW">
+					<input type="radio" id="radioW1" name="radioW" checked="checked" value="-1"><label for="radioW1">Auto</label>
+					<input type="radio" id="radioW2" name="radioW" value="1"><label for="radioW2">On</label>
+					<input type="radio" id="radioW3" name="radioW" value="0"><label for="radioW3">Off</label>
+				</div>
+				<img id="iconHC" src="images/waermetauscher.png">
+				<img id="workingHC" src="images/gears-animated.gif">
+				<div id="tempHC">
+					<div id="tempValueHC" class="tempValue">N/A</div>
+					<div id="tempUnitHC" class="tempUnit">&deg;</div>
+				</div>
+				<div id="radioHC">
+					<input type="radio" id="radioHC1" name="radioHC" checked="checked"><label for="radioHC1">Auto</label>
+					<input type="radio" id="radioHC2" name="radioHC"><label for="radioHC2">On</label>
+					<input type="radio" id="radioHC3" name="radioHC"><label for="radioHC3">Off</label>
+				</div>
+				<div id="timeValueLabel">System time</div>
+				<div id="timeValue">N/A</div>
+			</div>
+			<h3>Settings</h3>
+			<div>
+				<table width="100%" cellpadding="20">
+					<tr>
+						<td width="50%">
+							<label for="sliderOperatingTempW" class="settingsLabel">Operating Temperature Water</label>
+							<div id="sliderOperatingTempW" class="settingsSlider"></div>
+							<label for="sliderOperatingTempHC" class="settingsLabel">Operating Temperature Heat Changer</label>
+							<div id="sliderOperatingTempHC" class="settingsSlider"></div>
+							<label for="sliderPreheatingTempW" class="settingsLabel">Preheating Temperature Water</label>
+							<div id="sliderPreheatingTempW" class="settingsSlider"></div>
+							<label for="sliderPreheatingTempHC" class="settingsLabel">Preheating Temperature Heat Changer</label>
+							<div id="sliderPreheatingTempHC" class="settingsSlider"></div>
+						</td>
+						<td>
+							<label for="inputPreheatingTimeHours" class="settingsLabel">Preheating Time</label>
+							<br>
+							<select id="inputPreheatingTimeHours" style="width:80px">
+								<option>0</option>
+								<option>1</option>
+								<option>2</option>
+								<option>3</option>
+								<option>4</option>
+								<option>5</option>
+								<option>6</option>
+								<option selected="selected">7</option>
+								<option>8</option>
+								<option>9</option>
+								<option>10</option>
+								<option>11</option>
+								<option>12</option>
+								<option>13</option>
+								<option>14</option>
+								<option>15</option>
+								<option>16</option>
+								<option>17</option>
+								<option>18</option>
+								<option>19</option>
+								<option>20</option>
+								<option>21</option>
+								<option>22</option>
+								<option>23</option>
+							</select>
+							<select id="inputPreheatingTimeMinutes" style="width:80px">
+								<option selected="selected">00</option>
+								<option>10</option>
+								<option>20</option>
+								<option>30</option>
+								<option>40</option>
+								<option>50</option>
+							</select>
+							<br>
+							<br>
+							<label for="sliderPreheatingDuration" class="settingsLabel">Preheating Duration (minutes)</label>
+							<div id="sliderPreheatingDuration" class="settingsSlider"></div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<button>Default settings</button>
+							<button>Save settings</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<h3>Log</h3>
+			<div>Nam dui erat, auctor a, dignissim quis.</div>
+		</div>
+	<script src="js/duplexDataApi.js"></script>
+	<script src="external/jquery/jquery.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<script src="jquery-ui-slider-pips.js"></script>
+	<script>
+		
+		function onWaterModeChange(elem) {
+			if (elem.checked) {
+				sendData(elem.value);
+			}
+		}
+		
+		
+	  $(function() {
+		$( "#accordion" ).accordion({
+			heightStyle: "fill"
+		});
+
+		$( "#radioW" ).buttonset();
+
+		$( "#radioHC" ).buttonset();
+
+		$( "#sliderOperatingTempW" ).slider({
+			min: 10, max: 50
+		}).slider("float").slider("pips");
+		
+		$( "#sliderOperatingTempHC" ).slider({
+			min: 10, max: 50
+		}).slider("float").slider("pips");
+		
+		$( "#sliderPreheatingTempW" ).slider({
+			min: 10, max: 50
+		}).slider("float").slider("pips");
+		
+		$( "#sliderPreheatingTempHC" ).slider({
+			min: 10, max: 50
+		}).slider("float").slider("pips");
+		
+		$( "#sliderPreheatingDuration" ).slider({
+			min: 0, max: 60
+		}).slider("float").slider("pips");
+	  
+		$( "#inputPreheatingTimeHours" ).selectmenu();
+		$( "#inputPreheatingTimeMinutes" ).selectmenu();
+		});
+
+	  </script>
+	</body>
+</html>

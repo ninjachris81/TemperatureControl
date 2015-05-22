@@ -1,0 +1,92 @@
+#timeValueLabel {
+	position: absolute;
+	left: 40px;
+	top: 390px;
+	font-size: 20px;
+}
+
+#timeValue {
+	position: absolute;
+	left: 200px;
+	top: 390px;
+	font-size: 20px;
+}
+
+#iconW {
+	position: absolute;
+	width: 200px;
+}
+
+#workingW {
+	position: absolute;
+	width: 60px;
+	left: 190px;
+	top: 240px;
+	visibility: hidden;
+}
+
+#waterFlow {
+	position: absolute;
+	width: 60px;
+	left: 200px;
+	top: 185px;
+	visibility: hidden;
+}
+
+#iconHC {
+	position: absolute;
+	width: 200px;
+	left: 550px;
+}
+
+#workingHC {
+	position: absolute;
+	width: 60px;
+	left: 550px;
+	top: 240px;
+	visibility: hidden;
+}
+
+#tempW {
+	position: absolute;
+	left: 280px;
+	top: 190px;
+}
+
+#tempHC {
+	position: absolute;
+	left: 800px;
+	top: 190px;
+}
+
+.tempValue {
+	position: relative;
+	left: 0px;
+	font-size: 40px;
+}
+
+.tempUnit {
+	position: relative;
+	left: 80px;
+	top: -50px;
+	font-size: 40px;
+}
+
+#radioW {
+	position: absolute;
+	top: 320px;
+}
+
+#radioHC {
+	position: absolute;
+	left: 550px;
+	top: 320px;
+}
+
+.settingsSlider {
+	margin-top: 10px;
+	margin-bottom: 20px;
+}
+
+.settingsLabel {
+}
