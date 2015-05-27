@@ -89,8 +89,8 @@ void Settings::defaultSettings() {
   
   settingsData.configVersion = CONFIG_VERSION;
   
-  settingsData.temp.operatingTempMin_HC = 30;
-  settingsData.temp.operatingTempMin_W = 28;
+  settingsData.temp.operatingTempMin_HC = 32;
+  settingsData.temp.operatingTempMin_W = 25;
   settingsData.temp.operatingStart10Minutes = 42;  // 7 am (7 * 6)
   settingsData.temp.operatingEnd10Minutes = 126;  // 21 pm (21 * 6)
   
@@ -102,4 +102,5 @@ void Settings::defaultSettings() {
   
   settingsData.io.ioModes[PIN_PUMP_HC_INDEX] = PUMP_MODE_AUTO;
   settingsData.io.ioModes[PIN_PUMP_WATER_INDEX] = PUMP_MODE_AUTO; 
+  settingsData.io.ioModes[PIN_FLOW_SWITCH_INDEX] = PUMP_MODE_AUTO; 
 }
