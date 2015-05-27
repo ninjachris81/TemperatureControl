@@ -53,18 +53,22 @@ private:
   int currentTemperatureHC = 0;
   int currentTemperatureW = 0;
   
+  bool simulateTemp;
+  
   unsigned long lastUpdate = 0;
   unsigned long lastTempCheck = 0;
   
   IOController *ioController;
 
   void _updateData(bool forceUpdate);
-  void _updateData(bool forceUpdate, bool &hasUpdated);
+  void  _updateData(bool forceUpdate, bool &hasUpdatedW, bool &hasUpdatedHC);
   
   void checkDefault(bool &enablePumpW, bool &enablePumpHC);
   void checkPreheating(bool &enablePumpW, bool &enablePumpHC);
   
-  void simulateTemperature(int currentTemperatureHC, int currentTemperatureW);
+  void simulateTemperature(int currentTemperatureW, int currentTemperatureHC);
+  
+  void sendCurrentTemp();
   
 };
 

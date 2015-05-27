@@ -30,7 +30,7 @@ void setup() {
   
   settings.init();
   settings.loadSettings();
-  ioController.init();
+  ioController.init(settings.settingsData.io);
   time.init();
   temp.init(settings.settingsData.temp, &ioController);
 
@@ -58,7 +58,6 @@ void loop() {
   
   ioController.update();
 
-  if (!LogHandler::hasFatalError) {
-    temp.update();
-  }
+  //if (!LogHandler::hasFatalError) {
+  //}
 }

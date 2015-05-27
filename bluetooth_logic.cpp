@@ -13,10 +13,14 @@ void BluetoothLogic::init() {
   BT.print(BT_NAME);
   BT.flush();
   
+  BT.readStringUntil('O');
+  BT.readStringUntil('K');
+  
   sendLogUpdates = false;
   sendDataUpdates = true;
   
   isAuthenticated = false;
+  doRead = false;
   
   LogHandler::registerListener(this);
   InputHandler::registerListener(this);
@@ -56,7 +60,7 @@ void BluetoothLogic::sendCmd(String sender, String cmd) {
     BT.print(F(" "));
     BT.print(cmd);
     BT.print(BT_CMD_SEP);
-    BT.flush();
+    //BT.flush();
   } else {
     LogHandler::logMsg(BT_MODULE_NAME, F("Cannot send command - not authenticated !"), cmd);
   }
@@ -64,9 +68,22 @@ void BluetoothLogic::sendCmd(String sender, String cmd) {
 
 void BluetoothLogic::update() {
   if (BT.available()) {
-    String cmd = BT.readStringUntil(';');
-    cmd.substring(0, cmd.length()-1);
-    InputHandler::executeCmd(cmd);
+    if (BT.find("@")) {
+      doRead = true;
+    } else {
+      LogHandler::logMsg(BT_MODULE_NAME, F("Ignoring BT data: "), BT.available());
+    }
+    
+    if (doRead) {
+      String cmd = BT.readStringUntil(';');
+      doRead = false;
+      if (cmd.startsWith(F("OK"))) {
+        LogHandler::logMsg(BT_MODULE_NAME, F("Received BT cmd: "), cmd);
+      } else {
+        cmd.substring(0, cmd.length()-1);
+        InputHandler::executeCmd(cmd);
+      }
+    }
   }
 }
 

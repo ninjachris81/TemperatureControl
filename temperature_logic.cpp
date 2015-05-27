@@ -5,6 +5,7 @@
 TemperatureLogic::TemperatureLogic() {
   this->wire = new OneWire(PIN_TEMP);
   this->tempSensors = new DallasTemperature(wire);
+  simulateTemp = false;
 }
 
 TemperatureLogic::~TemperatureLogic() {
@@ -30,8 +31,10 @@ void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioContro
   }
   wire->reset_search();
 
-  _updateData(true, wasUpdated);
-  if (!wasUpdated) {
+  bool wasUpdatedW;
+  bool wasUpdatedHC;
+  _updateData(true, wasUpdatedW, wasUpdatedHC);
+  if (!wasUpdatedHC || !wasUpdatedW) {
     LogHandler::fatal(TEMPERATURE_MODULE_NAME, F("Failed to read from temp sensors !"));
   }
   
@@ -54,22 +57,16 @@ String TemperatureLogic::getName() {
 bool TemperatureLogic::onInput(String cmd) {
   if (cmd.equals(F("GET"))) {
     // read temp
-    
-    String tmpCmd = F("CT ");
-    tmpCmd.concat(currentTemperatureHC);
-    tmpCmd.concat(F(" "));
-    tmpCmd.concat(currentTemperatureW);
-    
-    OutputHandler::sendCmd(TEMPERATURE_MODULE_NAME, tmpCmd);
-    
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("HC temperature is "), currentTemperatureHC);
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("W temperature is "), currentTemperatureW);
+    sendCurrentTemp();
     return true;
-  } else if (cmd.startsWith(F("SET"))) {
+  } else {
+    String tempCmd;
     int v1, v2;
-    if (InputHandler::parseParameters2(cmd, v1, v2)) {
-      // set temp
-      simulateTemperature(v1, v2);
+    if (InputHandler::parseParameters3(cmd, tempCmd, v1, v2)) {
+      if (tempCmd.equals(F("SET"))) {
+        // set temp
+        simulateTemperature(v1, v2);
+      }
     } else {
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
     }        
@@ -79,9 +76,26 @@ bool TemperatureLogic::onInput(String cmd) {
   return false;
 }
 
+void TemperatureLogic::sendCurrentTemp() {
+  String tmpCmd = F("CT ");
+  tmpCmd.concat(currentTemperatureHC);
+  tmpCmd.concat(F(" "));
+  tmpCmd.concat(currentTemperatureW);
+  
+  OutputHandler::sendCmd(TEMPERATURE_MODULE_NAME, tmpCmd);
+  
+  //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("HC temperature is "), currentTemperatureHC);
+  //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("W temperature is "), currentTemperatureW);
+}
+
 void TemperatureLogic::update() {
   if (lastUpdate==0 || millis() - lastUpdate >= CHECK_INTERVAL_MIN_MS) {      // last update check interval
-    _updateData(false);    // update temp sensors
+    bool wasUpdatedW;
+    bool wasUpdatedHC;
+  
+    _updateData(false, wasUpdatedW, wasUpdatedHC);    // update temp sensors
+    
+    if (wasUpdatedW || wasUpdatedHC) sendCurrentTemp();
 
     bool enablePumpW = false;
     bool enablePumpHC = false;
@@ -89,8 +103,8 @@ void TemperatureLogic::update() {
     checkDefault(enablePumpW, enablePumpHC);
     if (!enablePumpW || !enablePumpHC) checkPreheating(enablePumpW, enablePumpHC);
 
-//    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpW: "), enablePumpW ? ENABLED_STRING : DISABLED_STRING);
-//    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpHC: "), enablePumpHC ? ENABLED_STRING : DISABLED_STRING);
+    //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpW: "), enablePumpW ? ENABLED_STRING : DISABLED_STRING);
+    //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpHC: "), enablePumpHC ? ENABLED_STRING : DISABLED_STRING);
     
     ioController->setValue(PIN_PUMP_WATER, PIN_PUMP_WATER_INDEX, enablePumpW);
     ioController->setValue(PIN_PUMP_HC, PIN_PUMP_HC_INDEX, enablePumpHC);
@@ -144,35 +158,57 @@ void TemperatureLogic::checkPreheating(bool &enablePumpW, bool &enablePumpHC) {
 }
 
 void TemperatureLogic::_updateData(bool forceUpdate) {
-  bool wasUpdated;
-  _updateData(forceUpdate, wasUpdated);
+  bool wasUpdatedW;
+  bool wasUpdatedHC;
+  _updateData(forceUpdate, wasUpdatedW, wasUpdatedHC);
 }
 
-void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdated) {
-  hasUpdated = false;
-
+void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdatedW, bool &hasUpdatedHC) {
+  hasUpdatedW = false;
+  hasUpdatedHC = false;
+  
+  if (simulateTemp) {
+    hasUpdatedW = true;
+    hasUpdatedHC = true;
+    return;
+  }
+  
   if (forceUpdate || lastTempCheck==0 || (millis() - lastTempCheck) >= CHECK_TEMP_INTERVAL_MIN_MS) {    // check sensor update interval
     tempSensors->requestTemperatures();
     //if (tempSensors->getDeviceCount()!=2) return false;
     
-    currentTemperatureHC = tempSensors->getTempCByIndex(TEMP_INDEX_HC);
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("New temperature HC: "), currentTemperatureHC);
+    int temp = 0;
+    
+    temp = tempSensors->getTempCByIndex(TEMP_INDEX_HC);
+    hasUpdatedHC = temp!=currentTemperatureHC;
+    currentTemperatureHC = temp;
+    if (hasUpdatedHC) {
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("New temperature HC: "), currentTemperatureHC);
+    }
   
-    currentTemperatureW = tempSensors->getTempCByIndex(TEMP_INDEX_W);
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("New temperature W: "), currentTemperatureW);
+    temp = tempSensors->getTempCByIndex(TEMP_INDEX_W);
+    hasUpdatedW = temp!=currentTemperatureW;
+    currentTemperatureW = temp;
+    if (hasUpdatedW) {
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("New temperature W: "), currentTemperatureW);
+    }
     
     lastTempCheck = millis();
-    hasUpdated = true;
   } else {
     //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Waiting for update, ltc: "), lastTempCheck);
   }
 }
 
-void TemperatureLogic::simulateTemperature(int currentTemperatureHC, int currentTemperatureW) {
-  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simulating temperature HC to "), currentTemperatureHC);
-  this->currentTemperatureHC = currentTemperatureHC;
-  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simulating temperature W to "), currentTemperatureW);
-  this->currentTemperatureW = currentTemperatureW;
+void TemperatureLogic::simulateTemperature(int currentTemperatureW, int currentTemperatureHC) {
+  if (currentTemperatureHC==999&&currentTemperatureW==999) {
+    simulateTemp = false;
+  } else {
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simulating temperature W to "), currentTemperatureW);
+    this->currentTemperatureW = currentTemperatureW;
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simulating temperature HC to "), currentTemperatureHC);
+    this->currentTemperatureHC = currentTemperatureHC;
+    simulateTemp = true;
+  }
 }
 
 

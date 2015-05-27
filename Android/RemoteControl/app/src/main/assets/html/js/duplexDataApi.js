@@ -51,6 +51,7 @@ registeredReceivers.SETT = function(cmd, params) {
 		$( "#sliderPreheatingTempHC" ).slider('value', parseInt(values[4]));
 		$( "#sliderPreheatingTempW" ).slider('value', parseInt(values[5]));
 		//parseInt(values[6])
+		$( "#sliderPreheatingDuration" ).slider('value', parseInt(values[7]));
 	} else {
 		console.error("Unknown command: " + cmd);
 	}
@@ -90,9 +91,15 @@ function onStateChanged(newState) {
 	
 	if (state==STATE_CONNECTED) {
 		sendData("TIME", "GET");
-		sendData("TEMP", "GET");
-		sendData("SETT", "GET");
-		sendData("IOST", "GET");
+		setTimeout(function() {
+			sendData("TEMP", "GET");
+		}, 500);
+		setTimeout(function() {
+			sendData("SETT", "GET");
+		}, 1000);
+		setTimeout(function() {
+			sendData("IOC", "GET");
+		}, 2000);
 	}
 }
 

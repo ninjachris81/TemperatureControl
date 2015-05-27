@@ -68,15 +68,41 @@ bool InputHandler::parseParameters2(String bufferStr, int &v1, int &v2) {
 }
 
 bool InputHandler::parseParameters3(String bufferStr, int &v1, int &v2, int &v3) {
+  String v1Str;
+  
+  bool returnVal = parseParameters3(bufferStr, v1Str, v2, v3);
+  v1 = v1Str.toInt();
+  return returnVal;
+}
+
+bool InputHandler::parseParameters3(String bufferStr, String &v1, int &v2, int &v3) {
   // 1 2 3
   if (bufferStr.length()<5) return false;
   int tmpIndex1 = bufferStr.indexOf(' ');
   int tmpIndex2 = bufferStr.indexOf(' ', tmpIndex1+1);
   if (tmpIndex1==-1 || tmpIndex2==-1) return false;
   
-  v1 = bufferStr.substring(0, tmpIndex1).toInt();
+  v1 = bufferStr.substring(0, tmpIndex1);
   v2 = bufferStr.substring(tmpIndex1 + 1, tmpIndex2).toInt();
   v3 = bufferStr.substring(tmpIndex2 + 1).toInt();
   
   return true;
 }
+
+/*
+bool InputHandler::parseParameters4(String bufferStr, String &v1, int &v2, int &v3, int &v4) {
+  // 1 2 3 4
+  if (bufferStr.length()<7) return false;
+  int tmpIndex1 = bufferStr.indexOf(' ');
+  int tmpIndex2 = bufferStr.indexOf(' ', tmpIndex1+1);
+  int tmpIndex3 = bufferStr.indexOf(' ', tmpIndex2+1);
+  if (tmpIndex1==-1 || tmpIndex2==-1 || tmpIndex3==-1) return false;
+  
+  v1 = bufferStr.substring(0, tmpIndex1);
+  v2 = bufferStr.substring(tmpIndex1 + 1, tmpIndex2).toInt();
+  v3 = bufferStr.substring(tmpIndex2 + 1).toInt();
+  v4 = bufferStr.substring(tmpIndex3 + 1).toInt();
+  
+  return true;
+}
+*/

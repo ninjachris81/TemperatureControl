@@ -29,6 +29,10 @@ public:
 
   static bool parseParameters3(String bufferStr, int &v1, int &v2, int &v3);
 
+  static bool parseParameters3(String bufferStr, String &v1, int &v2, int &v3);
+
+//  static bool parseParameters4(String bufferStr, String &v1, int &v2, int &v3, int &v4);
+
 private:
   static InputListener* listeners[MAX_INPUT_LISTENERS];
   static uint8_t listenerCount;

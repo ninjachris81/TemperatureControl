@@ -46,6 +46,8 @@ private:
   
   bool isAuthenticated;
   
+  bool doRead;
+  
 };
 
 

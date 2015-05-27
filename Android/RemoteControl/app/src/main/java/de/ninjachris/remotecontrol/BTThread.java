@@ -105,7 +105,14 @@ public abstract class BTThread implements Runnable, OutputDataApi, InputDataApi 
 
         } catch (IOException connectException) {
             // Unable to connect; close the socket and get out
-            inputDataApi.onStateChanged(InputDataApi.STATE_DISCONNECTED);
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    inputDataApi.onStateChanged(InputDataApi.STATE_DISCONNECTED);
+                }
+            });
+
 
             try {
                 mmSocket.close();
@@ -118,7 +125,7 @@ public abstract class BTThread implements Runnable, OutputDataApi, InputDataApi 
         if (mmOutStream!=null) {
             try {
                 mmOutStream.write(data.getBytes());
-                mmOutStream.flush();
+                //mmOutStream.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -127,7 +134,7 @@ public abstract class BTThread implements Runnable, OutputDataApi, InputDataApi 
 
     @Override
     public void sendData(String receiver, String cmd) {
-        sendData(receiver + " " + cmd + ";");
+        sendData("@" + receiver + " " + cmd + ";");
     }
 
     /** Will cancel an in-progress connection, and close the socket */

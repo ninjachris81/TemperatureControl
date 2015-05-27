@@ -18,12 +18,19 @@
 #define PIN_FLOW_SWITCH 8
 #define PIN_FLOW_SWITCH_INDEX 2
 
+#define PUMP_MODE_OFF 0
+#define PUMP_MODE_ON 1
+#define PUMP_MODE_AUTO 2
+
 #define IOC_MODULE_NAME F("IOC")
 
 class IOController : public InputHandler::InputListener {
 public:
-  
-  void init();
+  struct IOSettingsStruct {
+    byte ioModes[3];
+  } settingsData;
+    
+  void init(IOSettingsStruct &settings);
   
   void update();
   
@@ -32,10 +39,6 @@ public:
   
   bool getValue(int pinIndex);
   
-  void toggle(int pin, int pinIndex);
-  
-  byte getPinState();
-  
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
   
@@ -43,6 +46,8 @@ private:
   byte pinState = 0;
   
   void _printState(String ioName, bool enabled);
+  
+  void _sendIOState();
 };
 
 

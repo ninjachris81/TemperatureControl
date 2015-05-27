@@ -2,8 +2,10 @@
 #include "globals.h"
 #include "output_handler.h"
 
-void IOController::init() {
+void IOController::init(IOSettingsStruct &settings) {
   LogHandler::logMsg(IOC_MODULE_NAME, F("IO Controller init"));
+  
+  this->settingsData = settings;
 
   pinMode(PIN_PUMP_HC, OUTPUT);
   setValue(PIN_PUMP_HC, PIN_PUMP_HC_INDEX, false, true);
@@ -24,13 +26,27 @@ void IOController::setValue(int pin, int pinIndex, bool enable) {
 }
 
 void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
+  switch(settingsData.ioModes[pinIndex]) {
+    case PUMP_MODE_ON:
+      enable = true;
+      break;
+    case PUMP_MODE_OFF:
+      enable = false;
+      break;
+    case PUMP_MODE_AUTO:
+      // default behavior
+      break;
+  }
+
   bool value = bitRead(this->pinState, pinIndex);
   if (!force && value==enable) return;    // already set
+  
+  LogHandler::logMsg(IOC_MODULE_NAME, F("MODE: "), settingsData.ioModes[pinIndex]);
 
   String msg = F("Setting PIN ");
   msg.concat(pin);
   msg.concat(F(" to "));
-  msg.concat((enable ? F("true") : F("false")));
+  msg.concat((enable ? ENABLED_STRING : DISABLED_STRING));
   LogHandler::logMsg(IOC_MODULE_NAME, msg);
   
   digitalWrite(pin, !enable);    // map HIGH to off, LOW to on
@@ -39,6 +55,8 @@ void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
   } else {
     bitClear(this->pinState, pinIndex);
   }
+  
+  _sendIOState();
 }
 
 String IOController::getName() {
@@ -53,42 +71,43 @@ void IOController::_printState(String ioName, bool enabled) {
 }
 
 bool IOController::onInput(String cmd) {
-  int v1, v2;
-  
   if (cmd.equals(F("GET"))) {
-    String tmpStr = F("IOST ");
-    
-    tmpStr.concat(getValue(PIN_PUMP_HC_INDEX) ? 1 : 0);
-    tmpStr.concat(F(" "));
-    tmpStr.concat(getValue(PIN_PUMP_WATER_INDEX) ? 1 : 0);
-    tmpStr.concat(F(" "));
-    tmpStr.concat(getValue(PIN_FLOW_SWITCH_INDEX) ? 1 : 0);
-    
-    OutputHandler::sendCmd(IOC_MODULE_NAME, tmpStr);
-
-    _printState(F("TANK PUMP"), getValue(PIN_PUMP_HC_INDEX));
-    _printState(F("WATER PUMP"), getValue(PIN_PUMP_WATER_INDEX));
-    _printState(F("FLOW SWITCH"), getValue(PIN_FLOW_SWITCH_INDEX));
+    _sendIOState();
     return true;
   } else {
-    if (InputHandler::parseParameters2(cmd, v1, v2)) {
-      uint8_t pump;
-      uint8_t pumpIndex;
+    int v2, v3;
+    String v1;
+    if (InputHandler::parseParameters3(cmd, v1, v2, v3)) {
+      uint8_t ioDevice;
+      uint8_t ioIndex;
       
-      if (v1==1) {
-        pump = PIN_PUMP_HC;
-        pumpIndex = PIN_PUMP_HC_INDEX;
-      } else  if (v1==2) {
-        pump = PIN_PUMP_WATER;
-        pumpIndex = PIN_PUMP_WATER_INDEX;
+      if (v2==0) {
+        ioDevice = PIN_PUMP_HC;
+        ioIndex = PIN_PUMP_HC_INDEX;
+      } else  if (v2==1) {
+        ioDevice = PIN_PUMP_WATER;
+        ioIndex = PIN_PUMP_WATER_INDEX;
+      } else  if (v2==2) {
+        ioDevice = PIN_FLOW_SWITCH;
+        ioIndex = PIN_FLOW_SWITCH_INDEX;
       } else {
-        LogHandler::warning(IOC_MODULE_NAME, F("Invalid pump index !"));
+        LogHandler::warning(IOC_MODULE_NAME, F("Invalid io index !"));
         return false;
       }
-
-      setValue(pump, pumpIndex, v2==1);
-      return true;
-
+      
+      if (v1==F("MODE")) {
+        if (v3>=PUMP_MODE_OFF&&v3<=PUMP_MODE_AUTO) {
+          LogHandler::logMsg(IOC_MODULE_NAME, F("Setting io mode: "), v3);
+          settingsData.ioModes[ioIndex] = v3;
+          setValue(ioDevice, ioIndex, v2==1);
+          return true;
+        } else {
+          LogHandler::warning(IOC_MODULE_NAME, F("Invalid io mode !"));
+          return false;
+        }
+      } else {
+        return false;
+      }
     } else {
       LogHandler::warning(IOC_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
     }
@@ -99,8 +118,31 @@ bool IOController::onInput(String cmd) {
   return false;
 }
 
+void IOController::_sendIOState() {
+  String tmpStr = F("IOST ");
+  
+  tmpStr.concat(getValue(PIN_PUMP_HC_INDEX) ? 1 : 0);
+  tmpStr.concat(F(" "));
+  tmpStr.concat(getValue(PIN_PUMP_WATER_INDEX) ? 1 : 0);
+  tmpStr.concat(F(" "));
+  tmpStr.concat(getValue(PIN_FLOW_SWITCH_INDEX) ? 1 : 0);
+  
+  OutputHandler::sendCmd(IOC_MODULE_NAME, tmpStr);
+
+  _printState(F("TANK PUMP"), getValue(PIN_PUMP_HC_INDEX));
+  _printState(F("WATER PUMP"), getValue(PIN_PUMP_WATER_INDEX));
+  _printState(F("FLOW SWITCH"), getValue(PIN_FLOW_SWITCH_INDEX));
+}
+
 void IOController::update() {
+  if (settingsData.ioModes[PIN_FLOW_SWITCH_INDEX]!=PUMP_MODE_AUTO) return;
+  
   int val = !digitalRead(PIN_FLOW_SWITCH);
+  bool orgVal = getValue(PIN_FLOW_SWITCH_INDEX);
+  
+  if (val==orgVal) return;
+  
+  _sendIOState();
   
   if (val==HIGH) {
 //    LogHandler::logMsg(IOC_MODULE_NAME, F("FLOW SWITCH is ON"));
@@ -110,15 +152,3 @@ void IOController::update() {
     bitClear(this->pinState, PIN_FLOW_SWITCH_INDEX);
   }
 }
-
-
-void IOController::toggle(int pin, int pinIndex) {
-  bool value = bitRead(pinState, pinIndex);
-  setValue(pin, pinIndex, !value);
-}
-
-byte IOController::getPinState() {
-  return pinState;
-}
-
-

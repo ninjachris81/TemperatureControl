@@ -20,6 +20,7 @@ bool Settings::onInput(String cmd) {
   } else if (cmd.equals(F("GET"))) {
     String tmpStr = "CS ";
     
+    // 0-3
     tmpStr.concat(settingsData.temp.operatingTempMin_HC);
     tmpStr.concat(F("&"));
     tmpStr.concat(settingsData.temp.operatingTempMin_W);
@@ -29,6 +30,7 @@ bool Settings::onInput(String cmd) {
     tmpStr.concat(settingsData.temp.operatingEnd10Minutes);
     tmpStr.concat(F("&"));
     
+    // 4-8
     tmpStr.concat(settingsData.temp.preheatingTempMin_HC);
     tmpStr.concat(F("&"));
     tmpStr.concat(settingsData.temp.preheatingTempMin_W);
@@ -39,6 +41,15 @@ bool Settings::onInput(String cmd) {
     tmpStr.concat(F("&"));
     tmpStr.concat(settingsData.temp.tempSwitches1);
     
+    // IO stuff
+    // 9-10
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.io.ioModes[PIN_PUMP_HC_INDEX]);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.io.ioModes[PIN_PUMP_WATER_INDEX]);
+    tmpStr.concat(F("&"));
+    tmpStr.concat(settingsData.io.ioModes[PIN_FLOW_SWITCH_INDEX]);
+
     OutputHandler::sendCmd(SETTINGS_MODULE_NAME, tmpStr);
     
     LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Current settings: "), tmpStr);
@@ -88,5 +99,7 @@ void Settings::defaultSettings() {
   settingsData.temp.preheatingStart10Minutes = 42;    // 7 am (7 * 6)
   settingsData.temp.preheatingDurationMinutes = 5;      // 5 min
   settingsData.temp.tempSwitches1 = 0;
- 
+  
+  settingsData.io.ioModes[PIN_PUMP_HC_INDEX] = PUMP_MODE_AUTO;
+  settingsData.io.ioModes[PIN_PUMP_WATER_INDEX] = PUMP_MODE_AUTO; 
 }

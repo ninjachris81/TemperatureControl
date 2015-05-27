@@ -4,6 +4,7 @@
 #include <EEPROM.h>
 
 #include "temperature_logic.h"
+#include "iocontroller.h"
 #include "input_handler.h"
 
 #define CONFIG_VERSION 1
@@ -18,23 +19,10 @@ class Settings : public InputHandler::InputListener {
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
   
-/*  
-    struct SettingsStruct {
-      char configVersion;
-      int tempHC_operatingTemp;
-      int tempW_operatingTemp;
-      int tempSwitches1;
-    } settingsData = {
-      CONFIG_VERSION,
-      50,
-      35,
-      0
-    };
-    */
-    
     struct SettingsStruct {
       unsigned char configVersion;
       TemperatureLogic::TempSettingsStruct temp;
+      IOController::IOSettingsStruct io;
     } settingsData;
     
     void init();
