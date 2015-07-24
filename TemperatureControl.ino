@@ -7,13 +7,15 @@
 
 #define MAIN_MODULE_NAME F("MAIN")
 
+#include "input_handler.h"
+#include "bluetooth_logic.h"
 #include "settings.h"
 #include "time_logic.h"
 #include "temperature_logic.h"
 #include "iocontroller.h"
 #include "led_logic.h"
 #include "serial_api.h"
-#include "bluetooth_logic.h"
+#include "wifi_logic.h"
 
 LedLogic led;
 Settings settings;
@@ -22,10 +24,20 @@ TemperatureLogic temp;
 IOController ioController;
 SerialApi serialApi;
 BluetoothLogic bluetooth;
+WifiLogic wifiLogic;
+
+int getFreeRam()
+{
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
+}
 
 void setup() {
+  delay(2000);
+  
   LogHandler::init(&led);
-  LogHandler::logMsg(MAIN_MODULE_NAME, F("Temperature Control v0.1"));
+  LogHandler::logMsg(MAIN_MODULE_NAME, F("Temp Ctrl v0.1"));
   led.init();
   
   settings.init();
@@ -37,6 +49,8 @@ void setup() {
   serialApi.init();
   
   bluetooth.init();
+
+  wifiLogic.init(&temp, &ioController);
   
   if (!LogHandler::hasFatalError) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init successfully"));
@@ -46,6 +60,12 @@ void setup() {
 }
 
 void loop() {
+  if (lastRamUpdate==0 || millis() - lastRamUpdate >= RAM_UPDATE_INTERVAL_MS) {
+    lastRamUpdate = millis();
+    freeRam = getFreeRam();
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Free RAM: "), freeRam);
+  }
+  
   led.update();
   
   serialApi.update();
@@ -57,6 +77,8 @@ void loop() {
   bluetooth.update();
   
   ioController.update();
+
+  wifiLogic.update(freeRam);
 
   //if (!LogHandler::hasFatalError) {
   //}

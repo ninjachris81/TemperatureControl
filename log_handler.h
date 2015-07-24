@@ -8,6 +8,7 @@
 #endif
 
 #include "led_logic.h"
+#include "input_handler.h"
 
 #define DEBUG_PRINT
 #define DEBUG_SERIAL Serial
@@ -16,13 +17,18 @@
 
 #define LED_ERROR_INTERVAL_MS 200
 
-class LogHandler {
+#define LOG_HANDLER_MODULE_NAME F("LOG")
+
+class LogHandler : public InputHandler::InputListener {
 public:
   enum LOG_TYPE {
     LOG,
     WARN,
     FATAL
   };
+  
+  /*virtual*/ String getName();
+  /*virtual*/ bool onInput(String cmd);
 
   class LogListener {
     public:
@@ -40,6 +46,7 @@ public:
   static uint8_t listenerCount;
   static LedLogic *ledLogic;
   static bool hasFatalError;
+  static bool doLog;
   
   static void init(LedLogic *ledLogic);
 
@@ -62,6 +69,10 @@ public:
   static void unregisterListener(LogListener* listener);
   
   static void sendToListeners(String msg, LOG_TYPE type=LOG);
+
+protected:
+  static LogHandler* logHandler;
+
   
 };
 

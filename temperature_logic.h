@@ -45,6 +45,9 @@ public:
   
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
+
+  int getCurrentTemperatureHC();
+  int getCurrentTemperatureW();
   
 private:
   OneWire *wire;

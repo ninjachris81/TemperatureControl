@@ -17,7 +17,7 @@ public:
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
 
-  void save(uint8_t hour, uint8_t minute, uint8_t second);
+  static void save(uint8_t hour, uint8_t minute, uint8_t second);
   
 private:
   unsigned long lastUpdate = 0;

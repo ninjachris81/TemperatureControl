@@ -1,5 +1,6 @@
 #include "iocontroller.h"
 #include "globals.h"
+#include "log_handler.h"
 #include "output_handler.h"
 
 void IOController::init(IOSettingsStruct &settings) {

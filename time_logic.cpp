@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "format_utils.h"
 #include "output_handler.h"
+#include "log_handler.h"
 
 void TimeLogic::init(){
   if (RTC.isPresent()!=0) {
@@ -49,7 +50,7 @@ bool TimeLogic::onInput(String cmd) {
 
 
 void TimeLogic::save(uint8_t hour, uint8_t minute, uint8_t second) {
-  LogHandler::logMsg(TIME_MODULE_NAME, F("Saving time"));
+  LogHandler::logMsg(TIME_MODULE_NAME, F("Saving time: "), FormatUtils::formatTime(hour, minute, second));
   if (RTC.isPresent()!=0) RTC.stopClock();
   RTC.hour = hour;
   RTC.minute = minute;

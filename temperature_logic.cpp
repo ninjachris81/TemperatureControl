@@ -1,6 +1,7 @@
 #include "temperature_logic.h"
 #include "settings.h"
 #include "output_handler.h"
+#include "log_handler.h"
 
 TemperatureLogic::TemperatureLogic() {
   this->wire = new OneWire(PIN_TEMP);
@@ -209,6 +210,14 @@ void TemperatureLogic::simulateTemperature(int currentTemperatureW, int currentT
     this->currentTemperatureHC = currentTemperatureHC;
     simulateTemp = true;
   }
+}
+
+int TemperatureLogic::getCurrentTemperatureHC() {
+  return currentTemperatureHC;
+}
+
+int TemperatureLogic::getCurrentTemperatureW() {
+  return currentTemperatureW;
 }
 
 

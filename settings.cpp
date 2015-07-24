@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "globals.h"
 #include "output_handler.h"
+#include "log_handler.h"
 
 void Settings::init() {
   InputHandler::registerListener(this);

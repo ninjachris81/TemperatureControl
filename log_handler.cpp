@@ -4,7 +4,9 @@ LogHandler::LogListener* LogHandler::_listeners[MAX_LOG_LISTENERS];
 uint8_t LogHandler::listenerCount = 0;
 LedLogic* LogHandler::ledLogic = NULL;
 bool LogHandler::hasFatalError = false;
-
+bool LogHandler::doLog = true;
+LogHandler* LogHandler::logHandler = NULL;
+  
 bool LogHandler::registerListener(LogHandler::LogListener* listener) {
   if (listenerCount>=MAX_LOG_LISTENERS) return false;
   _listeners[listenerCount] = listener;
@@ -28,9 +30,35 @@ void LogHandler::init(LedLogic *ledLogic) {
   for (uint8_t i=0;i<MAX_LOG_LISTENERS;i++) {
     _listeners[i]==NULL;
   }
+  
+  LogHandler::logHandler = new LogHandler();
+  InputHandler::registerListener(LogHandler::logHandler);
+}
+
+String LogHandler::getName() {
+  return LOG_HANDLER_MODULE_NAME;
+}
+
+bool LogHandler::onInput(String cmd) {
+  String v1;
+  int v2;
+  
+  if (InputHandler::parseParameters2(cmd, v1, v2)) {
+    if (v1.equals(F("ENABLE"))) {
+      LogHandler::doLog = v2==1 ? true : false;
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    LogHandler::warning(LOG_HANDLER_MODULE_NAME, ERROR_WHILE_PARSING_PARAMS);
+    return false;
+  }
 }
 
 void LogHandler::logMsg(String moduleName, String msg) {
+  if (!doLog) return;
+
   String str = moduleName;
   str.concat(F("> "));
   str.concat(msg);
@@ -43,6 +71,8 @@ void LogHandler::logMsg(String moduleName, String msg) {
 }
 
 void LogHandler::logMsg(String moduleName, String msg, int val) {
+  if (!doLog) return;
+
   String str = moduleName;
   str.concat(F("> "));
   str.concat(msg);
@@ -56,6 +86,8 @@ void LogHandler::logMsg(String moduleName, String msg, int val) {
 }
 
 void LogHandler::logMsg(String moduleName, String msg, String val) {
+  if (!doLog) return;
+
   String str = moduleName;
   str.concat(F("> "));
   str.concat(msg);
@@ -69,6 +101,8 @@ void LogHandler::logMsg(String moduleName, String msg, String val) {
 }
 
 void LogHandler::warning(String moduleName, String msg) {
+  if (!doLog) return;
+
   String str = moduleName;
   str.concat(F("> WARN: "));
   str.concat(msg);
@@ -81,6 +115,8 @@ void LogHandler::warning(String moduleName, String msg) {
 }
 
 void LogHandler::warning(String moduleName, String msg, int val) {
+  if (!doLog) return;
+  
   String str = moduleName;
   str.concat(F("> WARN: "));
   str.concat(msg);
@@ -94,6 +130,8 @@ void LogHandler::warning(String moduleName, String msg, int val) {
 }
 
 void LogHandler::warning(String moduleName, String msg, String val) {
+  if (!doLog) return;
+
   String str = moduleName;
   str.concat(F("> WARN: "));
   str.concat(msg);
@@ -107,6 +145,8 @@ void LogHandler::warning(String moduleName, String msg, String val) {
 }
 
 void LogHandler::fatal(String moduleName, String msg) {
+  if (!doLog) return;
+
   String str = moduleName;
   str.concat(F("> FATAL: "));
   str.concat(msg);
@@ -122,6 +162,8 @@ void LogHandler::fatal(String moduleName, String msg) {
 }
 
 void LogHandler::sendToListeners(String msg, LogHandler::LOG_TYPE type) {
+  if (!doLog) return;
+
   if (listenerCount>0) {
     for (uint8_t i=0;i<MAX_LOG_LISTENERS;i++) {
       if (_listeners[i]!=NULL) {

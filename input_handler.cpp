@@ -1,5 +1,7 @@
 #include "input_handler.h"
 #include "format_utils.h"
+#include "globals.h"
+#include "log_handler.h"
 
 InputHandler::InputListener* InputHandler::listeners[MAX_INPUT_LISTENERS];
 uint8_t InputHandler::listenerCount = 0;
@@ -35,6 +37,11 @@ void InputHandler::executeCmd(String cmd) {
 }
 
 void InputHandler::registerListener(InputListener* listener) {
+  if (listenerCount==MAX_INPUT_LISTENERS) {
+    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Max Input handlers reached, cannot register "), listener->getName());
+    return;
+  }
+  
   listeners[listenerCount] = listener;
   listenerCount++;
 }

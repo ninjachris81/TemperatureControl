@@ -104,6 +104,8 @@
 			<div>Nam dui erat, auctor a, dignissim quis.</div>
 		</div>
 	<script src="js/duplexDataApi.js"></script>
+	<script src="js/reconnecting-websocket.js"></script>
+	<script src="js/wsConnector.js"></script>
 	<script src="external/jquery/jquery.js"></script>
 	<script src="jquery-ui.min.js"></script>
 	<script src="jquery-ui-slider-pips.js"></script>
@@ -148,7 +150,9 @@
 		$( "#inputPreheatingTimeHours" ).selectmenu();
 		$( "#inputPreheatingTimeMinutes" ).selectmenu();
 		});
-
+		
+		initWsConnector("ws://192.168.178.49/ws");
+		
 	  </script>
 	</body>
 </html>

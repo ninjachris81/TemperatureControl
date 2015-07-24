@@ -3,9 +3,9 @@
 
 #include <EEPROM.h>
 
+#include "input_handler.h"
 #include "temperature_logic.h"
 #include "iocontroller.h"
-#include "input_handler.h"
 
 #define CONFIG_VERSION 1
 #define CONFIG_START 32

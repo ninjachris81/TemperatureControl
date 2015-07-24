@@ -1,13 +1,17 @@
 #ifndef input_handler_h
 #define input_handler_h
 
-#include "globals.h"
+#if defined(ARDUINO) && (ARDUINO >= 100)
+#include <Arduino.h>
+#else
+#include <WProgram.h>
+#endif
 
 #define INPUT_HANDLER_MODULE_NAME F("IH")
 
 #define ERROR_WHILE_PARSING_PARAMS F("Error while parsing parameters")
 
-#define MAX_INPUT_LISTENERS 16
+#define MAX_INPUT_LISTENERS 12
 
 class InputHandler {
 public:
