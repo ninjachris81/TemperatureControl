@@ -5,7 +5,7 @@
 #include "temperature_logic.h"
 #include "iocontroller.h"
 
-#define WIFI_HANDLER_MODULE_NAME F("WIFI")
+#define WIFI_HANDLER_MODULE_NAME "WIFI"
 
 //#define WIFI_CHECK_INTERVAL_MIN_MS 900000   // 10 minutes
 #define WIFI_CHECK_INTERVAL_MIN_MS 60000   // 1 minute
@@ -33,6 +33,8 @@ private:
   bool connectAp();
   
   void syncData(int freeRam);
+
+  void addParam(String &query, uint8_t index, int value);
   
   void parseDate(String inputStr, uint8_t &h, uint8_t &m);
 

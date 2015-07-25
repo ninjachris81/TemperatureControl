@@ -4,7 +4,7 @@
 #include "output_handler.h"
 
 void IOController::init(IOSettingsStruct &settings) {
-  LogHandler::logMsg(IOC_MODULE_NAME, F("IO Controller init"));
+  //LogHandler::logMsg(IOC_MODULE_NAME, F("Init"));
   
   this->settingsData = settings;
 
@@ -44,7 +44,7 @@ void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
   
   LogHandler::logMsg(IOC_MODULE_NAME, F("MODE: "), settingsData.ioModes[pinIndex]);
 
-  String msg = F("Setting PIN ");
+  String msg = F("Set PIN ");
   msg.concat(pin);
   msg.concat(F(" to "));
   msg.concat((enable ? ENABLED_STRING : DISABLED_STRING));
@@ -92,18 +92,18 @@ bool IOController::onInput(String cmd) {
         ioDevice = PIN_FLOW_SWITCH;
         ioIndex = PIN_FLOW_SWITCH_INDEX;
       } else {
-        LogHandler::warning(IOC_MODULE_NAME, F("Invalid io index !"));
+        LogHandler::warning(IOC_MODULE_NAME, F("Inv index"));
         return false;
       }
       
       if (v1==F("MODE")) {
         if (v3>=PUMP_MODE_OFF&&v3<=PUMP_MODE_AUTO) {
-          LogHandler::logMsg(IOC_MODULE_NAME, F("Setting io mode: "), v3);
+          LogHandler::logMsg(IOC_MODULE_NAME, F("Set mode: "), v3);
           settingsData.ioModes[ioIndex] = v3;
           setValue(ioDevice, ioIndex, v2==1);
           return true;
         } else {
-          LogHandler::warning(IOC_MODULE_NAME, F("Invalid io mode !"));
+          LogHandler::warning(IOC_MODULE_NAME, F("Inv mode"));
           return false;
         }
       } else {

@@ -9,9 +9,10 @@
 #include "WProgram.h"
 #endif
 
+//#define esp SoftwareSerial(5, 6)
 #define esp Serial1
 
-#define ESP8266_MODULE_NAME F("ESP8266")
+#define ESP8266_MODULE_NAME "ESP"
 
 #define ESP_BAUD_RATE 115200
 //#define ESP_BAUD_RATE 921600
@@ -26,7 +27,7 @@
 #define TCP_MODE F("TCP")
 #define UDP_MODE F("UDP")
 
-#define SEND_BUFFER_SIZE 500
+#define SEND_BUFFER_SIZE 64
 
 class ESP8266 {
 public:
@@ -78,7 +79,7 @@ public:
 private:
   bool _sendData(int id, String data);
 
-  bool sendCommandAndWait(String cmd, String expectedResult, int timeoutMs = 10000, bool includeCrLf = true);
+  bool sendCommandAndWait(String cmd, String expectedResult = "OK", int timeoutMs = 10000, bool includeCrLf = true);
 
   void sendCommand(String cmd, bool includeCrLf = true);
   

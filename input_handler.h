@@ -7,9 +7,9 @@
 #include <WProgram.h>
 #endif
 
-#define INPUT_HANDLER_MODULE_NAME F("IH")
+#define INPUT_HANDLER_MODULE_NAME "IH"
 
-#define ERROR_WHILE_PARSING_PARAMS F("Error while parsing parameters")
+#define ERROR_WHILE_PARSING_PARAMS "Err @parsing params"
 
 #define MAX_INPUT_LISTENERS 12
 

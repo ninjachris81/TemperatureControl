@@ -5,7 +5,7 @@
 
 #include "globals.h"
 
-#define MAIN_MODULE_NAME F("MAIN")
+#define MAIN_MODULE_NAME "MAIN"
 
 #include "input_handler.h"
 #include "bluetooth_logic.h"
@@ -53,9 +53,9 @@ void setup() {
   wifiLogic.init(&temp, &ioController);
   
   if (!LogHandler::hasFatalError) {
-    LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init successfully"));
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
   } else {
-    LogHandler::logMsg(MAIN_MODULE_NAME, F("Error while init"));
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Error @ init"));
   }
 }
 
@@ -63,7 +63,7 @@ void loop() {
   if (lastRamUpdate==0 || millis() - lastRamUpdate >= RAM_UPDATE_INTERVAL_MS) {
     lastRamUpdate = millis();
     freeRam = getFreeRam();
-    LogHandler::logMsg(MAIN_MODULE_NAME, F("Free RAM: "), freeRam);
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("RAM: "), freeRam);
   }
   
   led.update();

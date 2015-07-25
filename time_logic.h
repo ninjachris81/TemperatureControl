@@ -4,7 +4,7 @@
 #include "DS1307new.h"
 #include "input_handler.h"
 
-#define TIME_MODULE_NAME F("TIME")
+#define TIME_MODULE_NAME "TIME"
 
 #define TIME_UPDATE_INTERVAL_MS 1000
 

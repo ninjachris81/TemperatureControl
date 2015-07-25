@@ -10,7 +10,7 @@
 // # Date       : 30.12.2011
 
 // # Description:
-// # The DS1307new Library
+// # The DS1307new LibrarygetRAM
 // # Update the library and sketch to compatible with IDE V1.0 and earlier
 // #
 // # Naming Convention:

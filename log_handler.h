@@ -17,7 +17,7 @@
 
 #define LED_ERROR_INTERVAL_MS 200
 
-#define LOG_HANDLER_MODULE_NAME F("LOG")
+#define LOG_HANDLER_MODULE_NAME "LOG"
 
 class LogHandler : public InputHandler::InputListener {
 public:

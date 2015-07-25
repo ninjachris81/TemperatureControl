@@ -22,23 +22,23 @@ void InputHandler::executeCmd(String cmd) {
     }
     
     if (target!=NULL) {
-      LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Sending command to "), receiver);
+      LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Send command @ "), receiver);
       cmd = cmd.substring(i+1);
       cmd.trim();
       if (!target->onInput(cmd)) {
-        LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Invalid command: "), cmd);
+        LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Inv command: "), cmd);
       }
     } else {
-      LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Receiver is invalid: "), receiver);
+      LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Recv inv: "), receiver);
     }
   } else {
-    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Invalid command format "), cmd);
+    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Inv format "), cmd);
   }
 }
 
 void InputHandler::registerListener(InputListener* listener) {
   if (listenerCount==MAX_INPUT_LISTENERS) {
-    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Max Input handlers reached, cannot register "), listener->getName());
+    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Max IH"), listener->getName());
     return;
   }
   

@@ -11,7 +11,7 @@
 #define CONFIG_START 32
 #define CONFIG_EMPTY 255
 
-#define SETTINGS_MODULE_NAME F("SETT")
+#define SETTINGS_MODULE_NAME "SETT"
 
 class Settings : public InputHandler::InputListener {
   public:

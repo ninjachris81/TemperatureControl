@@ -46,37 +46,39 @@ void WifiLogic::syncData(int freeRam) {
     String query = F("/update?key=CZPKJGC87RGLCY6J");
     
     // tempW
-    query+=F("&field1=");
-    query+=temperatureLogic->getCurrentTemperatureW();
+    addParam(query, 1, temperatureLogic->getCurrentTemperatureW());
     
     // tempHC
-    query+=F("&field2=");
-    query+=temperatureLogic->getCurrentTemperatureHC();
+    addParam(query, 2, temperatureLogic->getCurrentTemperatureHC());
 
     // pumpW
-    query+=F("&field3=");
-    query+=ioController->getValue(PIN_PUMP_HC_INDEX);
+    addParam(query, 3, ioController->getValue(PIN_PUMP_HC_INDEX));
 
     // pumpHC
-    query+=F("&field4=");
-    query+=ioController->getValue(PIN_PUMP_WATER_INDEX);
+    addParam(query, 4, ioController->getValue(PIN_PUMP_WATER_INDEX));
 
     // free ram
-    query+=F("&field5=");
-    query+=freeRam;
+    addParam(query, 5, freeRam);
 
     if (!myClient.executeGET(query, WIFI_REMOTE_HOST, HTTP_CONN_MODE_CLOSE, response)) {
-      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Error while GET"));
+      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Error @ GET"));
     } else {
       uint8_t h, m;
       parseDate(response, h, m);
       TimeLogic::save(h, m, 0);
     }
   } else {
-    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Failed to connect to server !"));
+    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Connect Fail"));
   }
 
   myClient.disconnectFromServer();
+}
+
+void WifiLogic::addParam(String &query, uint8_t index, int value) {
+  query+=F("&field");
+  query+=index;
+  query+=F("=");
+  query+=value;
 }
 
 
@@ -86,7 +88,6 @@ void WifiLogic::parseDate(String inputStr, uint8_t &h, uint8_t &m) {
     String date = inputStr.substring(i+6, i+6+35);
     int o = date.indexOf(F("\r\n"));
     date = date.substring(0, o);
-    Serial.println(date);
     int s, d, Y;
     char M[4];
 

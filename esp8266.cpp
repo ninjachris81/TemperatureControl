@@ -16,20 +16,20 @@ bool ESP8266::setTimeout(int timeoutMs) {
   esp.setTimeout(timeoutMs);
   String cmd = F("AT+CIPSTO=");
   cmd+=timeoutMs;
-  return sendCommandAndWait(cmd, F("OK"));
+  return sendCommandAndWait(cmd);
 }
 
 bool ESP8266::test() {
-  return sendCommandAndWait(F("AT"), F("OK"));
+  return sendCommandAndWait(F("AT"));
 }
 
 bool ESP8266::echoOff() {
-  return sendCommandAndWait(F("ATE0"), F("OK"));    // echo off
+  return sendCommandAndWait(F("ATE0"));    // echo off
 }
 
 
 bool ESP8266::softReset() {
-  bool returnVal = sendCommandAndWait(F("AT+RST"), F("OK"));
+  bool returnVal = sendCommandAndWait(F("AT+RST"));
   delay(2000);
   return returnVal;
 }
@@ -42,7 +42,7 @@ void ESP8266::getStatus() {
 bool ESP8266::setConnMode(int mode) {
   String cmd = F("AT+CIPMUX=");
   cmd+=mode;
-  return sendCommandAndWait(cmd, F("OK"));
+  return sendCommandAndWait(cmd);
 }
 
 bool ESP8266::serverMode(int mode, int port) {
@@ -52,7 +52,7 @@ bool ESP8266::serverMode(int mode, int port) {
     cmd+=",";
     cmd+=port;
   }
-  return sendCommandAndWait(cmd, F("OK"));
+  return sendCommandAndWait(cmd);
 }
 
 bool ESP8266::clientMode(int id, String type, String ip, int port) {
@@ -67,7 +67,7 @@ bool ESP8266::clientMode(int id, String type, String ip, int port) {
   cmd+=ip;
   cmd+="\",";
   cmd+=port;
-  return sendCommandAndWait(cmd, F("OK"));
+  return sendCommandAndWait(cmd);
 }
 
 
@@ -120,18 +120,18 @@ bool ESP8266::_sendData(int id, String data) {
 }
 
 bool ESP8266::apJoin(String name, String password) {
-  sendCommandAndWait(F("AT+CWMODE=1"), F("OK"));
+  sendCommandAndWait(F("AT+CWMODE=1"));
 
   String cmd = F("AT+CWJAP=\"");
   cmd+=name;
   cmd+="\",\"";
   cmd+=password;
   cmd+="\"";
-  return sendCommandAndWait(cmd, F("OK"));
+  return sendCommandAndWait(cmd);
 }
 
 bool ESP8266::apQuit() {
-  return sendCommandAndWait(F("AT+CWQAP"), F("OK"));
+  return sendCommandAndWait(F("AT+CWQAP"));
 }
 
 bool ESP8266::apInRange(String name) {
@@ -143,7 +143,7 @@ bool ESP8266::connClose(int id) {
   if (id>=0) {
     cmd+="=" + id;
   }
-  return sendCommandAndWait(cmd, F("OK"));
+  return sendCommandAndWait(cmd);
 }
 
 String ESP8266::getIp() {
@@ -176,7 +176,7 @@ bool ESP8266::waitForResponse(String expectedResult, int timeoutMs) {
       if (resp.indexOf(expectedResult)>=0) {
         break;
       } else {
-        LogHandler::warning(ESP8266_MODULE_NAME, F("IGNORING RESPONSE: "), resp);
+        LogHandler::warning(ESP8266_MODULE_NAME, F("IGNORING RESP: "), resp);
       }
     }
     
@@ -185,7 +185,7 @@ bool ESP8266::waitForResponse(String expectedResult, int timeoutMs) {
   }
   
   if (timeoutMs>0) {
-    LogHandler::logMsg(ESP8266_MODULE_NAME, F("RECEIVED: "), expectedResult);
+    LogHandler::logMsg(ESP8266_MODULE_NAME, F("RECV: "), expectedResult);
     return true;
   } else {
     LogHandler::warning(ESP8266_MODULE_NAME, F("TIMEOUT WAITING FOR "), expectedResult);
@@ -277,7 +277,7 @@ bool ESP8266::sendCommandAndWait(String cmd, String expectedResult, int timeoutM
 }
 
 void ESP8266::sendCommand(String cmd, bool includeCrLf) {
-  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Sending command: "), cmd);
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Sending cmd: "), cmd);
   
   if (includeCrLf) {
     esp.println(cmd);

@@ -22,7 +22,7 @@
 #define PUMP_MODE_ON 1
 #define PUMP_MODE_AUTO 2
 
-#define IOC_MODULE_NAME F("IOC")
+#define IOC_MODULE_NAME "IOC"
 
 class IOController : public InputHandler::InputListener {
 public:

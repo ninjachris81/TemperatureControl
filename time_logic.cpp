@@ -7,10 +7,10 @@
 void TimeLogic::init(){
   if (RTC.isPresent()!=0) {
     RTC.getTime();
-    LogHandler::logMsg(TIME_MODULE_NAME, F("Current time: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
+    LogHandler::logMsg(TIME_MODULE_NAME, F("Time: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
     RTC.startClock();
   } else {
-    LogHandler::fatal(TIME_MODULE_NAME, F("RTC not found !"));
+    LogHandler::fatal(TIME_MODULE_NAME, F("RTC not found"));
   }
   
   InputHandler::registerListener(this);
@@ -32,7 +32,7 @@ bool TimeLogic::onInput(String cmd) {
     String tmpStr = F("CT ");
     tmpStr.concat((RTC.hour * 24 * 60) + (RTC.minute * 60) + RTC.second);
     OutputHandler::sendCmd(TIME_MODULE_NAME, tmpStr);
-    LogHandler::logMsg(TIME_MODULE_NAME, F("Current time is: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
+    LogHandler::logMsg(TIME_MODULE_NAME, F("Time: "), FormatUtils::formatTime(RTC.hour, RTC.minute, RTC.second));
     return true;
   } else if (cmd.startsWith(F("SET"))) {
     int v1, v2, v3;
@@ -50,7 +50,7 @@ bool TimeLogic::onInput(String cmd) {
 
 
 void TimeLogic::save(uint8_t hour, uint8_t minute, uint8_t second) {
-  LogHandler::logMsg(TIME_MODULE_NAME, F("Saving time: "), FormatUtils::formatTime(hour, minute, second));
+  LogHandler::logMsg(TIME_MODULE_NAME, F("Saving: "), FormatUtils::formatTime(hour, minute, second));
   if (RTC.isPresent()!=0) RTC.stopClock();
   RTC.hour = hour;
   RTC.minute = minute;

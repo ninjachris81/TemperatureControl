@@ -45,7 +45,6 @@ bool ESP8266HttpClient::executeRequest(String method, String url, String host, S
     response = myEsp->readResponse();
     return response.length()>0;
   } else {
-    Serial.println(F("Error while sending"));
     return false;
   }
 }

@@ -4,11 +4,11 @@
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 
 void BluetoothLogic::init() {
-  LogHandler::logMsg(BT_MODULE_NAME, F("Activating BT"));
+  LogHandler::logMsg(BT_MODULE_NAME, F("Activate BT"));
   BT.begin(BT_BAUD_RATE);
   BT.setTimeout(2000);
   
-  LogHandler::logMsg(BT_MODULE_NAME, F("Setting BT name: "), BT_NAME);
+  LogHandler::logMsg(BT_MODULE_NAME, F("Set BT name: "), BT_NAME);
   BT.print(F("AT+NAME"));
   BT.print(BT_NAME);
   BT.flush();
@@ -37,15 +37,15 @@ bool BluetoothLogic::onInput(String cmd) {
   if (InputHandler::parseParameters2(cmd, v1, v2)) {
     if (v1.equals(F("LOG"))) {
       sendLogUpdates = (v2==1);
-      LogHandler::logMsg(BT_MODULE_NAME, F("Setting log updates to: "), sendLogUpdates ? ENABLED_STRING : DISABLED_STRING);
+      LogHandler::logMsg(BT_MODULE_NAME, F("->log updates: "), sendLogUpdates ? ENABLED_STRING : DISABLED_STRING);
       return true;
     } else if (v1.equals(F("DATA"))) {
       sendDataUpdates = (v2==1);
-      LogHandler::logMsg(BT_MODULE_NAME, F("Setting data updates to: "), sendDataUpdates ? ENABLED_STRING : DISABLED_STRING);
+      LogHandler::logMsg(BT_MODULE_NAME, F("->data updates: "), sendDataUpdates ? ENABLED_STRING : DISABLED_STRING);
       return true;
     } else if (v1.equals(F("AUTH"))) {
       isAuthenticated = (v2==BT_AUTH_HASH);
-      LogHandler::logMsg(BT_MODULE_NAME, F("BT is authenticated: "), isAuthenticated ? ENABLED_STRING : DISABLED_STRING);
+      LogHandler::logMsg(BT_MODULE_NAME, F("Auth: "), isAuthenticated ? ENABLED_STRING : DISABLED_STRING);
       return true;
     }
   }
@@ -62,7 +62,7 @@ void BluetoothLogic::sendCmd(String sender, String cmd) {
     BT.print(BT_CMD_SEP);
     //BT.flush();
   } else {
-    LogHandler::logMsg(BT_MODULE_NAME, F("Cannot send command - not authenticated !"), cmd);
+    LogHandler::logMsg(BT_MODULE_NAME, F("Cannot send - not auth"), cmd);
   }
 }
 
@@ -71,14 +71,14 @@ void BluetoothLogic::update() {
     if (BT.find("@")) {
       doRead = true;
     } else {
-      LogHandler::logMsg(BT_MODULE_NAME, F("Ignoring BT data: "), BT.available());
+      LogHandler::logMsg(BT_MODULE_NAME, F("Ignore data: "), BT.available());
     }
     
     if (doRead) {
       String cmd = BT.readStringUntil(';');
       doRead = false;
       if (cmd.startsWith(F("OK"))) {
-        LogHandler::logMsg(BT_MODULE_NAME, F("Received BT cmd: "), cmd);
+        LogHandler::logMsg(BT_MODULE_NAME, F("->Cmd: "), cmd);
       } else {
         cmd.substring(0, cmd.length()-1);
         InputHandler::executeCmd(cmd);

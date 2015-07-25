@@ -22,38 +22,39 @@ bool Settings::onInput(String cmd) {
     String tmpStr = "CS ";
     
     // 0-3
+    String concatStr = "&";
     tmpStr.concat(settingsData.temp.operatingTempMin_HC);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.operatingTempMin_W);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.operatingStart10Minutes);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.operatingEnd10Minutes);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     
     // 4-8
     tmpStr.concat(settingsData.temp.preheatingTempMin_HC);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.preheatingTempMin_W);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.preheatingStart10Minutes);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.preheatingDurationMinutes);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.tempSwitches1);
     
     // IO stuff
     // 9-10
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.io.ioModes[PIN_PUMP_HC_INDEX]);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.io.ioModes[PIN_PUMP_WATER_INDEX]);
-    tmpStr.concat(F("&"));
+    tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.io.ioModes[PIN_FLOW_SWITCH_INDEX]);
 
     OutputHandler::sendCmd(SETTINGS_MODULE_NAME, tmpStr);
     
-    LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Current settings: "), tmpStr);
+    LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Settings: "), tmpStr);
     return true;
   }
   
@@ -66,18 +67,18 @@ void Settings::loadSettings() {
   unsigned char myVersion = EEPROM.read(CONFIG_START);
 
   if (myVersion==CONFIG_EMPTY) {
-    LogHandler::logMsg(SETTINGS_MODULE_NAME, F("No configuration saved yet"));
+    LogHandler::logMsg(SETTINGS_MODULE_NAME, F("No conf saved yet"));
   } else if (myVersion == CONFIG_VERSION) {
-    LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Loading settings, version: "), myVersion);
+    LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Loading, ver: "), myVersion);
     for (unsigned int t=0; t<sizeof(settingsData); t++)
       *((char*)&settingsData + t) = EEPROM.read(CONFIG_START + t);
   } else {
-    LogHandler::warning(SETTINGS_MODULE_NAME, F("Error - Config version differs: "), myVersion);
+    LogHandler::warning(SETTINGS_MODULE_NAME, F("Ver differs: "), myVersion);
   }
 }
 
 void Settings::saveSettings() {
-  LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Saving settings, size: "), sizeof(settingsData));
+  LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Saving, size: "), sizeof(settingsData));
   
   settingsData.configVersion = CONFIG_VERSION;
 
@@ -86,7 +87,7 @@ void Settings::saveSettings() {
 }
 
 void Settings::defaultSettings() {
-  LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Setting to default"));
+  LogHandler::logMsg(SETTINGS_MODULE_NAME, F("->Default"));
   
   settingsData.configVersion = CONFIG_VERSION;
   
