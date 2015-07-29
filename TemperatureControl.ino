@@ -26,6 +26,8 @@ SerialApi serialApi;
 BluetoothLogic bluetooth;
 WifiLogic wifiLogic;
 
+bool doExecuteProg;
+
 int getFreeRam()
 {
   extern int __heap_start, *__brkval;
@@ -34,8 +36,8 @@ int getFreeRam()
 }
 
 void setup() {
-  delay(2000);
-  
+  delay(1000);
+
   LogHandler::init(&led);
   LogHandler::logMsg(MAIN_MODULE_NAME, F("Temp Ctrl v0.1"));
   led.init();
@@ -57,9 +59,17 @@ void setup() {
   } else {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Error @ init"));
   }
+
+  LogHandler::logMsg(MAIN_MODULE_NAME, F("Press any key to interrupt startup"));
+  delay(3000);
+  doExecuteProg = (Serial.read()==-1);
+
+  if (!doExecuteProg) LogHandler::logMsg(MAIN_MODULE_NAME, F("Startup interrupt"));
 }
 
 void loop() {
+  if (!doExecuteProg) return;
+  
   if (lastRamUpdate==0 || millis() - lastRamUpdate >= RAM_UPDATE_INTERVAL_MS) {
     lastRamUpdate = millis();
     freeRam = getFreeRam();

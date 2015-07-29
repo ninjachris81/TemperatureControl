@@ -9,8 +9,7 @@
 #include "WProgram.h"
 #endif
 
-//#define esp SoftwareSerial(5, 6)
-#define esp Serial1
+#include "globals.h"
 
 #define ESP8266_MODULE_NAME "ESP"
 

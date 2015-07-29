@@ -1,5 +1,6 @@
+#include <SoftwareSerial.h>
+
 #include "bluetooth_logic.h"
-#include "globals.h"
 
 SoftwareSerial BT(BT_TX_PIN, BT_RX_PIN);
 

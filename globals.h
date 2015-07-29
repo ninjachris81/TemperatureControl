@@ -1,10 +1,23 @@
 #ifndef globals_h
 #define globals_h
 
-//#include "log_handler.h"
+// PIN DEFINITIONS
+#define BT_TX_PIN 10
+#define BT_RX_PIN 11
 
-#define ENABLED_STRING F("enabled")
-#define DISABLED_STRING F("disabled")
+#define PIN_TEMP 7
+
+#define PIN_PUMP_HC 2
+#define PIN_PUMP_WATER 4
+#define PIN_FLOW_SWITCH 8
+
+//#define esp SoftwareSerial(5, 6)
+#define esp Serial1
+
+// PIN DEFINITIONS
+
+#define ENABLED_STRING "enabled"
+#define DISABLED_STRING "disabled"
 
 #define RAM_UPDATE_INTERVAL_MS 10000
 static unsigned long lastRamUpdate = 0;

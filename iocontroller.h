@@ -8,14 +8,10 @@
 #endif
 
 #include "input_handler.h"
+#include "globals.h"
 
-#define PIN_PUMP_HC 2
 #define PIN_PUMP_HC_INDEX 0
-
-#define PIN_PUMP_WATER 4
 #define PIN_PUMP_WATER_INDEX 1
-
-#define PIN_FLOW_SWITCH 8
 #define PIN_FLOW_SWITCH_INDEX 2
 
 #define PUMP_MODE_OFF 0

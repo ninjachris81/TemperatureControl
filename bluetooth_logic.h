@@ -1,20 +1,17 @@
 #ifndef bluetooth_logic_h
 #define bluetooth_logic_h
 
-#include <SoftwareSerial.h>
-
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
 #else
 #include "WProgram.h"
 #endif
 
+#include "globals.h"
 #include "log_handler.h"
 #include "input_handler.h"
 #include "output_handler.h"
 
-#define BT_TX_PIN 10
-#define BT_RX_PIN 11
 #define BT_BAUD_RATE 9600
 
 #define BT_MODULE_NAME "BT"

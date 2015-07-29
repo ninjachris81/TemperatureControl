@@ -9,8 +9,6 @@
 #include "time_logic.h"
 #include "input_handler.h"
 
-#define PIN_TEMP 7
-
 #define TEMP_INDEX_HC 0
 #define TEMP_INDEX_W 1
 
