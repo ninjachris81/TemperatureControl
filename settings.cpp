@@ -52,6 +52,11 @@ bool Settings::onInput(String cmd) {
     tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.io.ioModes[PIN_FLOW_SWITCH_INDEX]);
 
+    // Wifi stuff
+    // 11
+    tmpStr.concat(concatStr);
+    tmpStr.concat(settingsData.wifi.apIndex);
+
     OutputHandler::sendCmd(SETTINGS_MODULE_NAME, tmpStr);
     
     LogHandler::logMsg(SETTINGS_MODULE_NAME, F("Settings: "), tmpStr);
@@ -105,4 +110,6 @@ void Settings::defaultSettings() {
   settingsData.io.ioModes[PIN_PUMP_HC_INDEX] = PUMP_MODE_AUTO;
   settingsData.io.ioModes[PIN_PUMP_WATER_INDEX] = PUMP_MODE_AUTO; 
   settingsData.io.ioModes[PIN_FLOW_SWITCH_INDEX] = PUMP_MODE_AUTO; 
+
+  settingsData.wifi.apIndex = WIFI_AP_STALNET_REPEAT;
 }

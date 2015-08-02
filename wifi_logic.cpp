@@ -2,9 +2,11 @@
 #include "time_logic.h"
 #include "log_handler.h"
 
-void WifiLogic::init(TemperatureLogic *temperatureLogic, IOController *ioController) {
+void WifiLogic::init(WifiSettingsStruct &settings, TemperatureLogic *temperatureLogic, IOController *ioController) {
   this->temperatureLogic = temperatureLogic;
   this->ioController = ioController;
+
+  this->settingsData = settings;
   
   myEsp.init();
 
@@ -17,10 +19,52 @@ void WifiLogic::init(TemperatureLogic *temperatureLogic, IOController *ioControl
   if (!connectAp()) return;
 
   myClient.init(&myEsp);
+
+  this->ioController->addPropertyValueListener(PIN_PUMP_HC_INDEX, this);
+  this->ioController->addPropertyValueListener(PIN_PUMP_WATER_INDEX, this);
+  this->ioController->addPropertyValueListener(PIN_FLOW_SWITCH_INDEX, this);
+}
+
+void WifiLogic::onPropertyValueChange(uint8_t id, int value) {
+  switch(id) {
+    case PIN_PUMP_HC_INDEX:
+      setStopTimer(hcST, value);
+      break;
+    case PIN_PUMP_WATER_INDEX:
+      setStopTimer(wST, value);
+      break;
+    case PIN_FLOW_SWITCH_INDEX:
+      setStopTimer(fsST, value);
+      break;   
+  }
+}
+
+void WifiLogic::setStopTimer(StopTimer &timer, int value) {
+    if (value==IO_STATE_ON) {
+      timer.start(); 
+    } else { 
+      timer.stop();
+    }
 }
 
 bool WifiLogic::connectAp() {
-  bool returnVal = myEsp.apJoin(F("StalnetRepeat"), F("wlandome"));
+  String ssid;
+  String pw;
+
+  switch(this->settingsData.apIndex) {
+    case WIFI_AP_STALNET_REPEAT:
+      ssid = F("StalnetRepeat");
+      pw = F("wlandome");
+      break;
+    case WIFI_AP_STALNET:
+      ssid = F("Stalnet");
+      pw = F("wlandome");
+      break;
+    default:
+      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Unknown AP"));
+  }
+  
+  bool returnVal = myEsp.apJoin(ssid, pw);
   if (returnVal) {
     status = WIFI_STATUS_CONNECTED_AP;
   }
@@ -52,13 +96,16 @@ void WifiLogic::syncData(int freeRam) {
     addParam(query, 2, temperatureLogic->getCurrentTemperatureHC());
 
     // pumpW
-    addParam(query, 3, ioController->getValue(PIN_PUMP_HC_INDEX));
+    addParam(query, 3, ((int)wST.currentMs()/1000));
 
     // pumpHC
-    addParam(query, 4, ioController->getValue(PIN_PUMP_WATER_INDEX));
+    addParam(query, 4, ((int)hcST.currentMs()/1000));
+
+    // flowSwitch
+    addParam(query, 5, ((int)fsST.currentMs()/1000));
 
     // free ram
-    addParam(query, 5, freeRam);
+    addParam(query, 6, freeRam);
 
     if (!myClient.executeGET(query, WIFI_REMOTE_HOST, HTTP_CONN_MODE_CLOSE, response)) {
       LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Error @ GET"));
@@ -66,6 +113,10 @@ void WifiLogic::syncData(int freeRam) {
       uint8_t h, m;
       parseDate(response, h, m);
       TimeLogic::save(h, m, 0);
+
+      wST.reset();
+      hcST.reset();
+      fsST.reset();
     }
   } else {
     LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Connect Fail"));

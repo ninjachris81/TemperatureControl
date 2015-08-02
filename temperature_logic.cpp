@@ -7,6 +7,12 @@ TemperatureLogic::TemperatureLogic() {
   this->wire = new OneWire(PIN_TEMP);
   this->tempSensors = new DallasTemperature(wire);
   simulateTemp = false;
+
+  this->tempHC.init(TEMP_INDEX_HC);
+  this->tempW.init(TEMP_INDEX_W);
+
+  this->tempHC.registerValueChangeListener(this);
+  this->tempW.registerValueChangeListener(this);
 }
 
 TemperatureLogic::~TemperatureLogic() {
@@ -51,6 +57,10 @@ void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioContro
   InputHandler::registerListener(this);
 }
 
+void TemperatureLogic::onPropertyValueChange(uint8_t id, int value) {
+  sendCurrentTemp();
+}
+
 String TemperatureLogic::getName() {
   return TEMPERATURE_MODULE_NAME;
 }
@@ -79,9 +89,9 @@ bool TemperatureLogic::onInput(String cmd) {
 
 void TemperatureLogic::sendCurrentTemp() {
   String tmpCmd = F("CT ");
-  tmpCmd.concat(currentTemperatureHC);
+  tmpCmd.concat(tempHC.getValue());
   tmpCmd.concat(F(" "));
-  tmpCmd.concat(currentTemperatureW);
+  tmpCmd.concat(tempW.getValue());
   
   OutputHandler::sendCmd(TEMPERATURE_MODULE_NAME, tmpCmd);
   
@@ -96,7 +106,7 @@ void TemperatureLogic::update() {
   
     _updateData(false, wasUpdatedW, wasUpdatedHC);    // update temp sensors
     
-    if (wasUpdatedW || wasUpdatedHC) sendCurrentTemp();
+    //if (wasUpdatedW || wasUpdatedHC) sendCurrentTemp();
 
     bool enablePumpW = false;
     bool enablePumpHC = false;
@@ -117,7 +127,7 @@ void TemperatureLogic::update() {
 }
 
 void TemperatureLogic::checkDefault(bool &enablePumpW, bool &enablePumpHC) {
-    if (ioController->getValue(PIN_FLOW_SWITCH_INDEX)) {
+    if (ioController->getPropertyValue(PIN_FLOW_SWITCH_INDEX)==IO_STATE_ON) {
       // check if flow switch is on
 //      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Flow Switch is On"));
       enablePumpW = true;
@@ -127,8 +137,8 @@ void TemperatureLogic::checkDefault(bool &enablePumpW, bool &enablePumpHC) {
       byte currentMinute10 = (RTC.hour * MINUTE10_FACTOR) + (RTC.minute / (60/MINUTE10_FACTOR));
       if (currentMinute10 >= settingsData.operatingStart10Minutes && currentMinute10 < settingsData.operatingEnd10Minutes) {
         LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain"));
-        enablePumpW = currentTemperatureW<settingsData.operatingTempMin_W;
-        enablePumpHC = currentTemperatureHC<settingsData.operatingTempMin_HC;
+        enablePumpW = tempW.getValue()<settingsData.operatingTempMin_W;
+        enablePumpHC = tempHC.getValue()<settingsData.operatingTempMin_HC;
 //        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain temp w min: "), settingsData.operatingTempMin_W);
 //        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain temp hc min: "), settingsData.operatingTempMin_HC);
       } else {
@@ -145,10 +155,10 @@ void TemperatureLogic::checkPreheating(bool &enablePumpW, bool &enablePumpHC) {
     int currentPreheatingEnd = currentPreheatingStart + settingsData.preheatingDurationMinutes;
     
     if (currentMinute >= currentPreheatingStart && currentMinute < currentPreheatingEnd) {    // in active timeframe ?
-      enablePumpHC = settingsData.preheatingTempMin_HC<currentTemperatureHC;
-      enablePumpW = settingsData.preheatingTempMin_W<currentTemperatureW;
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PreH,HC temp: "), currentTemperatureHC);
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PreH,W temp: "), currentTemperatureW);
+      enablePumpHC = settingsData.preheatingTempMin_HC<tempHC.getValue();
+      enablePumpW = settingsData.preheatingTempMin_W<tempW.getValue();
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PreH,HC temp: "), tempHC.getValue());
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PreH,W temp: "), tempW.getValue());
     } else {
       /*
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating - Out of time frame, start: "), currentPreheatingStart);
@@ -181,17 +191,15 @@ void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdatedW, bool &ha
     int temp = 0;
     
     temp = tempSensors->getTempCByIndex(TEMP_INDEX_HC);
-    hasUpdatedHC = temp!=currentTemperatureHC;
-    currentTemperatureHC = temp;
+    hasUpdatedHC = this->tempHC.setValue(temp);
     if (hasUpdatedHC) {
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Temp HC: "), currentTemperatureHC);
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Temp HC: "), tempHC.getValue());
     }
   
     temp = tempSensors->getTempCByIndex(TEMP_INDEX_W);
-    hasUpdatedW = temp!=currentTemperatureW;
-    currentTemperatureW = temp;
+    hasUpdatedW = this->tempW.setValue(temp);
     if (hasUpdatedW) {
-      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Temp W: "), currentTemperatureW);
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Temp W: "), tempW.getValue());
     }
     
     lastTempCheck = millis();
@@ -200,24 +208,24 @@ void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdatedW, bool &ha
   }
 }
 
-void TemperatureLogic::simulateTemperature(int currentTemperatureW, int currentTemperatureHC) {
-  if (currentTemperatureHC==999&&currentTemperatureW==999) {
+void TemperatureLogic::simulateTemperature(int temperatureW, int temperatureHC) {
+  if (temperatureW==999&&temperatureHC==999) {
     simulateTemp = false;
   } else {
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simu temp W "), currentTemperatureW);
-    this->currentTemperatureW = currentTemperatureW;
-    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simu temp HC "), currentTemperatureHC);
-    this->currentTemperatureHC = currentTemperatureHC;
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simu temp W "), temperatureW);
+    this->tempW.setValue(temperatureW);
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Simu temp HC "), temperatureHC);
+    this->tempHC.setValue(temperatureHC);
     simulateTemp = true;
   }
 }
 
 int TemperatureLogic::getCurrentTemperatureHC() {
-  return currentTemperatureHC;
+  return this->tempHC.getValue();
 }
 
 int TemperatureLogic::getCurrentTemperatureW() {
-  return currentTemperatureW;
+  return this->tempW.getValue();
 }
 
 

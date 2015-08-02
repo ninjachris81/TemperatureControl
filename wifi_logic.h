@@ -4,11 +4,17 @@
 #include "esp8266_httpclient.h"
 #include "temperature_logic.h"
 #include "iocontroller.h"
+#include "property.h"
+#include "stop_timer.h"
 
 #define WIFI_HANDLER_MODULE_NAME "WIFI"
 
-//#define WIFI_CHECK_INTERVAL_MIN_MS 900000   // 10 minutes
-#define WIFI_CHECK_INTERVAL_MIN_MS 60000   // 1 minute
+#define WIFI_AP_STALNET_REPEAT 0
+#define WIFI_AP_STALNET 1
+
+#define WIFI_CHECK_INTERVAL_MIN_MS 300000   // 5 minutes
+//#define WIFI_CHECK_INTERVAL_MIN_MS 600000   // 10 minutes
+//#define WIFI_CHECK_INTERVAL_MIN_MS 60000   // 1 minute
 
 #define WIFI_STATUS_INIT 0
 #define WIFI_STATUS_CONNECTED_AP 1
@@ -16,10 +22,14 @@
 #define WIFI_REMOTE_IP F("184.106.153.149")
 #define WIFI_REMOTE_HOST F("api.thingspeak.com")
 
-class WifiLogic {
+class WifiLogic: public Property::ValueChangeListener {
 public:
 
-  void init(TemperatureLogic *temperatureLogic, IOController *ioController);
+  struct WifiSettingsStruct {
+    byte apIndex;
+  } settingsData;
+  
+  void init(WifiSettingsStruct &settings, TemperatureLogic *temperatureLogic, IOController *ioController);
 
   void update(int freeRam);
 
@@ -29,6 +39,13 @@ private:
 
   TemperatureLogic *temperatureLogic;
   IOController *ioController;
+
+  /*virtual*/ void onPropertyValueChange(uint8_t id, int value);
+  void setStopTimer(StopTimer &timer, int value);
+
+  StopTimer hcST;
+  StopTimer wST;
+  StopTimer fsST;
 
   bool connectAp();
   

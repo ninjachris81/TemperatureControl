@@ -8,18 +8,26 @@ void IOController::init(IOSettingsStruct &settings) {
   
   this->settingsData = settings;
 
+  this->hcState.init(PIN_PUMP_HC_INDEX);
+  this->wState.init(PIN_PUMP_WATER_INDEX);
+  this->fsState.init(PIN_FLOW_SWITCH_INDEX);
+
   pinMode(PIN_PUMP_HC, OUTPUT);
   setValue(PIN_PUMP_HC, PIN_PUMP_HC_INDEX, false, true);
   pinMode(PIN_PUMP_WATER, OUTPUT);
   setValue(PIN_PUMP_WATER, PIN_PUMP_WATER_INDEX, false, true);
   pinMode(PIN_FLOW_SWITCH, INPUT);
-  bitClear(this->pinState, PIN_FLOW_SWITCH_INDEX);
+  setPropertyValue(PIN_FLOW_SWITCH_INDEX, IO_STATE_OFF);
 
   InputHandler::registerListener(this);
+
+  this->hcState.registerValueChangeListener(this);
+  this->wState.registerValueChangeListener(this);
+  this->fsState.registerValueChangeListener(this);
 }
 
-bool IOController::getValue(int pinIndex) {
-  return bitRead(this->pinState, pinIndex);
+void IOController::onPropertyValueChange(uint8_t id, int value) {
+  _sendIOState();
 }
 
 void IOController::setValue(int pin, int pinIndex, bool enable) {
@@ -39,7 +47,7 @@ void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
       break;
   }
 
-  bool value = bitRead(this->pinState, pinIndex);
+  bool value = getPropertyValue(pinIndex);
   if (!force && value==enable) return;    // already set
   
   LogHandler::logMsg(IOC_MODULE_NAME, F("MODE: "), settingsData.ioModes[pinIndex]);
@@ -52,12 +60,49 @@ void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
   
   digitalWrite(pin, !enable);    // map HIGH to off, LOW to on
   if (enable) {
-    bitSet(this->pinState, pinIndex);
+    setPropertyValue(pinIndex, IO_STATE_ON);
   } else {
-    bitClear(this->pinState, pinIndex);
+    setPropertyValue(pinIndex, IO_STATE_OFF);
   }
-  
-  _sendIOState();
+}
+
+void IOController::addPropertyValueListener(int pinIndex, Property::ValueChangeListener *valueChangeListener) {
+  switch(pinIndex) {
+    case PIN_PUMP_HC_INDEX:
+      this->hcState.registerValueChangeListener(valueChangeListener);
+      break;
+    case PIN_PUMP_WATER_INDEX:
+      this->wState.registerValueChangeListener(valueChangeListener);
+      break;
+    case PIN_FLOW_SWITCH_INDEX:
+      this->fsState.registerValueChangeListener(valueChangeListener);
+      break;
+  }
+}
+
+int IOController::getPropertyValue(int pinIndex) {
+  switch(pinIndex) {
+    case PIN_PUMP_HC_INDEX:
+      return this->hcState.getValue();
+    case PIN_PUMP_WATER_INDEX:
+      return this->wState.getValue();
+    case PIN_FLOW_SWITCH_INDEX:
+      return this->fsState.getValue();
+  }
+}
+
+void IOController::setPropertyValue(int pinIndex, int value) {
+  switch(pinIndex) {
+    case PIN_PUMP_HC_INDEX:
+      this->hcState.setValue(value);
+      break;
+    case PIN_PUMP_WATER_INDEX:
+      this->wState.setValue(value);
+      break;
+    case PIN_FLOW_SWITCH_INDEX:
+      this->fsState.setValue(value);
+      break;
+  }
 }
 
 String IOController::getName() {
@@ -122,34 +167,32 @@ bool IOController::onInput(String cmd) {
 void IOController::_sendIOState() {
   String tmpStr = F("IOST ");
   
-  tmpStr.concat(getValue(PIN_PUMP_HC_INDEX) ? 1 : 0);
+  tmpStr.concat(this->hcState.getValue());
   tmpStr.concat(F(" "));
-  tmpStr.concat(getValue(PIN_PUMP_WATER_INDEX) ? 1 : 0);
+  tmpStr.concat(this->wState.getValue());
   tmpStr.concat(F(" "));
-  tmpStr.concat(getValue(PIN_FLOW_SWITCH_INDEX) ? 1 : 0);
+  tmpStr.concat(this->fsState.getValue());
   
   OutputHandler::sendCmd(IOC_MODULE_NAME, tmpStr);
 
-  _printState(F("TANK PUMP"), getValue(PIN_PUMP_HC_INDEX));
-  _printState(F("WATER PUMP"), getValue(PIN_PUMP_WATER_INDEX));
-  _printState(F("FLOW SWITCH"), getValue(PIN_FLOW_SWITCH_INDEX));
+  _printState(F("TANK PUMP"), getPropertyValue(PIN_PUMP_HC_INDEX));
+  _printState(F("WATER PUMP"), getPropertyValue(PIN_PUMP_WATER_INDEX));
+  _printState(F("FLOW SWITCH"), getPropertyValue(PIN_FLOW_SWITCH_INDEX));
 }
 
 void IOController::update() {
   if (settingsData.ioModes[PIN_FLOW_SWITCH_INDEX]!=PUMP_MODE_AUTO) return;
   
   int val = !digitalRead(PIN_FLOW_SWITCH);
-  bool orgVal = getValue(PIN_FLOW_SWITCH_INDEX);
+  bool orgVal = this->fsState.getValue();
   
   if (val==orgVal) return;
   
-  _sendIOState();
-  
   if (val==HIGH) {
+    this->fsState.setValue(IO_STATE_ON);
 //    LogHandler::logMsg(IOC_MODULE_NAME, F("FLOW SWITCH is ON"));
-    bitSet(this->pinState, PIN_FLOW_SWITCH_INDEX);
   } else {
 //    LogHandler::logMsg(IOC_MODULE_NAME, F("FLOW SWITCH is OFF"));
-    bitClear(this->pinState, PIN_FLOW_SWITCH_INDEX);
+    this->fsState.setValue(IO_STATE_OFF);
   }
 }

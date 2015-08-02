@@ -6,6 +6,7 @@
 #include "input_handler.h"
 #include "temperature_logic.h"
 #include "iocontroller.h"
+#include "wifi_logic.h"
 
 #define CONFIG_VERSION 1
 #define CONFIG_START 32
@@ -23,6 +24,7 @@ class Settings : public InputHandler::InputListener {
       unsigned char configVersion;
       TemperatureLogic::TempSettingsStruct temp;
       IOController::IOSettingsStruct io;
+      WifiLogic::WifiSettingsStruct wifi;
     } settingsData;
     
     void init();

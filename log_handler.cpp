@@ -46,6 +46,9 @@ bool LogHandler::onInput(String cmd) {
   if (InputHandler::parseParameters2(cmd, v1, v2)) {
     if (v1.equals(F("ENABLE"))) {
       LogHandler::doLog = v2==1 ? true : false;
+      if (LogHandler::doLog) {
+        logMsg(LOG_HANDLER_MODULE_NAME, F("Log enabled"));
+      }
       return true;
     } else {
       return false;

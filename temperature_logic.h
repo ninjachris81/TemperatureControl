@@ -8,6 +8,7 @@
 #include "iocontroller.h"
 #include "time_logic.h"
 #include "input_handler.h"
+#include "property.h"
 
 #define TEMP_INDEX_HC 0
 #define TEMP_INDEX_W 1
@@ -17,9 +18,9 @@
 #define CHECK_INTERVAL_MIN_MS 1000
 #define CHECK_TEMP_INTERVAL_MIN_MS 5000
 
-#define TEMPERATURE_MODULE_NAME "TMP"
+#define TEMPERATURE_MODULE_NAME "TEMP"
 
-class TemperatureLogic : public InputHandler::InputListener {
+class TemperatureLogic : public InputHandler::InputListener, public Property::ValueChangeListener {
 public:
   TemperatureLogic();
   ~TemperatureLogic();
@@ -41,6 +42,8 @@ public:
   void init(TempSettingsStruct &settings, IOController *ioController);
   void update();
   
+  /*virtual*/ void onPropertyValueChange(uint8_t id, int value);
+
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
 
@@ -50,9 +53,12 @@ public:
 private:
   OneWire *wire;
   DallasTemperature *tempSensors;
-  
+
+  Property tempHC, tempW;
+  /*
   int currentTemperatureHC = 0;
   int currentTemperatureW = 0;
+  */
   
   bool simulateTemp;
   
@@ -67,7 +73,7 @@ private:
   void checkDefault(bool &enablePumpW, bool &enablePumpHC);
   void checkPreheating(bool &enablePumpW, bool &enablePumpHC);
   
-  void simulateTemperature(int currentTemperatureW, int currentTemperatureHC);
+  void simulateTemperature(int temperatureW, int temperatureHC);
   
   void sendCurrentTemp();
   

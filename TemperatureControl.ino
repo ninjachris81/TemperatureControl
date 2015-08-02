@@ -52,7 +52,7 @@ void setup() {
   
   bluetooth.init();
 
-  wifiLogic.init(&temp, &ioController);
+  wifiLogic.init(settings.settingsData.wifi, &temp, &ioController);
   
   if (!LogHandler::hasFatalError) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
@@ -65,6 +65,7 @@ void setup() {
   doExecuteProg = (Serial.read()==-1);
 
   if (!doExecuteProg) LogHandler::logMsg(MAIN_MODULE_NAME, F("Startup interrupt"));
+  LogHandler::doLog = false;
 }
 
 void loop() {
@@ -76,9 +77,9 @@ void loop() {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("RAM: "), freeRam);
   }
   
-  led.update();
-  
   serialApi.update();
+
+  led.update();
   
   temp.update();
 
