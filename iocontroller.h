@@ -22,7 +22,7 @@
 #define IO_STATE_OFF 0
 #define IO_STATE_ON 1
 
-#define IOC_MODULE_NAME "IOC"
+#define IOC_MODULE_NAME MODNAME("IOC")
 
 class IOController : public InputHandler::InputListener, public Property::ValueChangeListener {
 public:

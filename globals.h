@@ -1,6 +1,12 @@
 #ifndef globals_h
 #define globals_h
 
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+  #define MODNAME(n) (F(#n))
+#else
+  #define MODNAME(n) (n)
+#endif
+
 // PIN DEFINITIONS
 #define BT_TX_PIN 10
 #define BT_RX_PIN 11

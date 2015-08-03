@@ -3,6 +3,7 @@
 
 #include <EEPROM.h>
 
+#include "globals.h"
 #include "input_handler.h"
 #include "temperature_logic.h"
 #include "iocontroller.h"
@@ -12,7 +13,7 @@
 #define CONFIG_START 32
 #define CONFIG_EMPTY 255
 
-#define SETTINGS_MODULE_NAME "SETT"
+#define SETTINGS_MODULE_NAME MODNAME("SETT")
 
 class Settings : public InputHandler::InputListener {
   public:

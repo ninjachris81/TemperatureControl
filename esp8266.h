@@ -11,7 +11,7 @@
 
 #include "globals.h"
 
-#define ESP8266_MODULE_NAME "ESP"
+#define ESP8266_MODULE_NAME MODNAME("ESP")
 
 #define ESP_BAUD_RATE 115200
 //#define ESP_BAUD_RATE 921600

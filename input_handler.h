@@ -7,7 +7,9 @@
 #include <WProgram.h>
 #endif
 
-#define INPUT_HANDLER_MODULE_NAME "IH"
+#include "globals.h"
+
+#define INPUT_HANDLER_MODULE_NAME MODNAME("IH")
 
 #define ERROR_WHILE_PARSING_PARAMS "Err @parsing params"
 

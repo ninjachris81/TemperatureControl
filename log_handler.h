@@ -7,6 +7,7 @@
 #include "WProgram.h"
 #endif
 
+#include "globals.h"
 #include "led_logic.h"
 #include "input_handler.h"
 
@@ -17,7 +18,7 @@
 
 #define LED_ERROR_INTERVAL_MS 200
 
-#define LOG_HANDLER_MODULE_NAME "LOG"
+#define LOG_HANDLER_MODULE_NAME MODNAME("LOG")
 
 class LogHandler : public InputHandler::InputListener {
 public:

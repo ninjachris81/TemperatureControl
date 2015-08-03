@@ -18,7 +18,7 @@
 #define CHECK_INTERVAL_MIN_MS 1000
 #define CHECK_TEMP_INTERVAL_MIN_MS 5000
 
-#define TEMPERATURE_MODULE_NAME "TEMP"
+#define TEMPERATURE_MODULE_NAME MODNAME("TEMP")
 
 class TemperatureLogic : public InputHandler::InputListener, public Property::ValueChangeListener {
 public:

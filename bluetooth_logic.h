@@ -14,7 +14,7 @@
 
 #define BT_BAUD_RATE 9600
 
-#define BT_MODULE_NAME "BT"
+#define BT_MODULE_NAME MODNAME("BT")
 
 #define UPDATE_INTERVAL_MS 2000
 

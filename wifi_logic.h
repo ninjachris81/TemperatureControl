@@ -1,13 +1,14 @@
 #ifndef wifi_logic_h
 #define wifi_logic_h
 
+#include "globals.h"
 #include "esp8266_httpclient.h"
 #include "temperature_logic.h"
 #include "iocontroller.h"
 #include "property.h"
 #include "stop_timer.h"
 
-#define WIFI_HANDLER_MODULE_NAME "WIFI"
+#define WIFI_HANDLER_MODULE_NAME MODNAME("WIFI")
 
 #define WIFI_AP_STALNET_REPEAT 0
 #define WIFI_AP_STALNET 1
