@@ -22,6 +22,7 @@
 #include "led_logic.h"
 #include "serial_api.h"
 #include "wifi_logic.h"
+#include "watchdog_logic.h"
 
 LedLogic led;
 Settings settings;
@@ -31,6 +32,7 @@ IOController ioController;
 SerialApi serialApi;
 BluetoothLogic bluetooth;
 WifiLogic wifiLogic;
+WatchdogLogic watchdogLogic;
 
 bool doExecuteProg;
 
@@ -60,6 +62,8 @@ void setup() {
   bluetooth.init();
 
   wifiLogic.init(settings.settingsData.wifi, &temp, &ioController);
+
+  watchdogLogic.init();
   
   if (!LogHandler::hasFatalError) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
@@ -97,6 +101,8 @@ void loop() {
   ioController.update();
 
   wifiLogic.update(freeRam);
+
+  watchdogLogic.update();
 
   //if (!LogHandler::hasFatalError) {
   //}

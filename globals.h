@@ -17,6 +17,8 @@
 #define PIN_PUMP_WATER 4
 #define PIN_FLOW_SWITCH 8
 
+#define PIN_WATCHDOG_COMM 9
+
 //#define esp SoftwareSerial(5, 6)
 #define esp Serial1
 
