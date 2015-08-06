@@ -10,9 +10,11 @@ TemperatureLogic::TemperatureLogic() {
 
   this->tempHC.init(TEMP_INDEX_HC);
   this->tempW.init(TEMP_INDEX_W);
+  this->tempW.init(TEMP_INDEX_TANK);
 
   this->tempHC.registerValueChangeListener(this);
   this->tempW.registerValueChangeListener(this);
+  //this->tempTank.registerValueChangeListener(this);
 }
 
 TemperatureLogic::~TemperatureLogic() {
@@ -20,7 +22,7 @@ TemperatureLogic::~TemperatureLogic() {
   delete tempSensors;
 }
 
-void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioController) {
+void TemperatureLogic::init(TempSettingsStruct *settings, IOController *ioController) {
   bool wasUpdated;
   
   this->settingsData = settings;
@@ -40,7 +42,8 @@ void TemperatureLogic::init(TempSettingsStruct &settings, IOController *ioContro
 
   bool wasUpdatedW;
   bool wasUpdatedHC;
-  _updateData(true, wasUpdatedW, wasUpdatedHC);
+  bool wasUpdatedTank;
+  _updateData(true, wasUpdatedW, wasUpdatedHC, wasUpdatedTank);
   if (!wasUpdatedHC || !wasUpdatedW) {
     LogHandler::fatal(TEMPERATURE_MODULE_NAME, F("Failed to read from sensors"));
   }
@@ -103,8 +106,9 @@ void TemperatureLogic::update() {
   if (lastUpdate==0 || millis() - lastUpdate >= CHECK_INTERVAL_MIN_MS) {      // last update check interval
     bool wasUpdatedW;
     bool wasUpdatedHC;
+    bool wasUpdatedTank;
   
-    _updateData(false, wasUpdatedW, wasUpdatedHC);    // update temp sensors
+    _updateData(false, wasUpdatedW, wasUpdatedHC, wasUpdatedTank);    // update temp sensors
     
     //if (wasUpdatedW || wasUpdatedHC) sendCurrentTemp();
 
@@ -135,10 +139,10 @@ void TemperatureLogic::checkDefault(bool &enablePumpW, bool &enablePumpHC) {
     } else {
       // check maintain temp mode
       byte currentMinute10 = (RTC.hour * MINUTE10_FACTOR) + (RTC.minute / (60/MINUTE10_FACTOR));
-      if (currentMinute10 >= settingsData.operatingStart10Minutes && currentMinute10 < settingsData.operatingEnd10Minutes) {
+      if (currentMinute10 >= settingsData->operatingStart10Minutes && currentMinute10 < settingsData->operatingEnd10Minutes) {
         LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain"));
-        enablePumpW = tempW.getValue()<settingsData.operatingTempMin_W;
-        enablePumpHC = tempHC.getValue()<settingsData.operatingTempMin_HC;
+        enablePumpW = tempW.getValue()<settingsData->operatingTempMin_W;
+        enablePumpHC = tempHC.getValue()<settingsData->operatingTempMin_HC;
 //        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain temp w min: "), settingsData.operatingTempMin_W);
 //        LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Maintain temp hc min: "), settingsData.operatingTempMin_HC);
       } else {
@@ -151,12 +155,12 @@ void TemperatureLogic::checkDefault(bool &enablePumpW, bool &enablePumpHC) {
 
 void TemperatureLogic::checkPreheating(bool &enablePumpW, bool &enablePumpHC) {
     int currentMinute = (RTC.hour * 60) + RTC.minute;
-    int currentPreheatingStart = settingsData.preheatingStart10Minutes * MINUTE10_FACTOR;
-    int currentPreheatingEnd = currentPreheatingStart + settingsData.preheatingDurationMinutes;
+    int currentPreheatingStart = settingsData->preheatingStart10Minutes * MINUTE10_FACTOR;
+    int currentPreheatingEnd = currentPreheatingStart + settingsData->preheatingDurationMinutes;
     
     if (currentMinute >= currentPreheatingStart && currentMinute < currentPreheatingEnd) {    // in active timeframe ?
-      enablePumpHC = settingsData.preheatingTempMin_HC<tempHC.getValue();
-      enablePumpW = settingsData.preheatingTempMin_W<tempW.getValue();
+      enablePumpHC = settingsData->preheatingTempMin_HC<tempHC.getValue();
+      enablePumpW = settingsData->preheatingTempMin_W<tempW.getValue();
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PreH,HC temp: "), tempHC.getValue());
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PreH,W temp: "), tempW.getValue());
     } else {
@@ -171,10 +175,11 @@ void TemperatureLogic::checkPreheating(bool &enablePumpW, bool &enablePumpHC) {
 void TemperatureLogic::_updateData(bool forceUpdate) {
   bool wasUpdatedW;
   bool wasUpdatedHC;
-  _updateData(forceUpdate, wasUpdatedW, wasUpdatedHC);
+  bool wasUpdatedTank;
+  _updateData(forceUpdate, wasUpdatedW, wasUpdatedHC, wasUpdatedTank);
 }
 
-void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdatedW, bool &hasUpdatedHC) {
+void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdatedW, bool &hasUpdatedHC, bool &hasUpdatedTank) {
   hasUpdatedW = false;
   hasUpdatedHC = false;
   
@@ -202,6 +207,12 @@ void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdatedW, bool &ha
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Temp W: "), tempW.getValue());
     }
     
+    temp = tempSensors->getTempCByIndex(TEMP_INDEX_TANK);
+    hasUpdatedTank = this->tempTank.setValue(temp);
+    if (hasUpdatedTank) {
+      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Temp Tank: "), tempTank.getValue());
+    }
+
     lastTempCheck = millis();
   } else {
     //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Waiting for update, ltc: "), lastTempCheck);
@@ -228,4 +239,7 @@ int TemperatureLogic::getCurrentTemperatureW() {
   return this->tempW.getValue();
 }
 
+int TemperatureLogic::getCurrentTemperatureTank() {
+  return this->tempTank.getValue();
+}
 

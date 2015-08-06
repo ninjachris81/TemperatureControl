@@ -28,9 +28,9 @@ class IOController : public InputHandler::InputListener, public Property::ValueC
 public:
   struct IOSettingsStruct {
     byte ioModes[3];
-  } settingsData;
+  } *settingsData;
     
-  void init(IOSettingsStruct &settings);
+  void init(IOSettingsStruct *settings);
   
   void update();
 

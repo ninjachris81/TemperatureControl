@@ -2,7 +2,6 @@
 
 LogHandler::LogListener* LogHandler::_listeners[MAX_LOG_LISTENERS];
 uint8_t LogHandler::listenerCount = 0;
-LedLogic* LogHandler::ledLogic = NULL;
 bool LogHandler::hasFatalError = false;
 bool LogHandler::doLog = true;
 LogHandler* LogHandler::logHandler = NULL;
@@ -22,9 +21,7 @@ void LogHandler::unregisterListener(LogListener* listener) {
   listenerCount--;
 }
 
-void LogHandler::init(LedLogic *ledLogic) {
-  LogHandler::ledLogic = ledLogic;
-  
+void LogHandler::init() {
   DEBUG_SERIAL.begin(9600);
   
   for (uint8_t i=0;i<MAX_LOG_LISTENERS;i++) {
@@ -159,7 +156,6 @@ void LogHandler::fatal(String moduleName, String msg) {
 #endif
 
   LogHandler::hasFatalError = true;
-  ledLogic->setInterval(LED_ERROR_INTERVAL_MS);
   
   sendToListeners(str, FATAL);
 }

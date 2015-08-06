@@ -12,6 +12,7 @@
 
 #define TEMP_INDEX_HC 0
 #define TEMP_INDEX_W 1
+#define TEMP_INDEX_TANK 2
 
 #define MINUTE10_FACTOR 6
 
@@ -37,9 +38,9 @@ public:
       byte preheatingDurationMinutes;
       
       int tempSwitches1;
-    } settingsData;
+    } *settingsData;
 
-  void init(TempSettingsStruct &settings, IOController *ioController);
+  void init(TempSettingsStruct *settings, IOController *ioController);
   void update();
   
   /*virtual*/ void onPropertyValueChange(uint8_t id, int value);
@@ -49,12 +50,13 @@ public:
 
   int getCurrentTemperatureHC();
   int getCurrentTemperatureW();
+  int getCurrentTemperatureTank();
   
 private:
   OneWire *wire;
   DallasTemperature *tempSensors;
 
-  Property tempHC, tempW;
+  Property tempHC, tempW, tempTank;
   /*
   int currentTemperatureHC = 0;
   int currentTemperatureW = 0;
@@ -68,7 +70,7 @@ private:
   IOController *ioController;
 
   void _updateData(bool forceUpdate);
-  void  _updateData(bool forceUpdate, bool &hasUpdatedW, bool &hasUpdatedHC);
+  void  _updateData(bool forceUpdate, bool &hasUpdatedW, bool &hasUpdatedHC, bool &hasUpdatedTank);
   
   void checkDefault(bool &enablePumpW, bool &enablePumpHC);
   void checkPreheating(bool &enablePumpW, bool &enablePumpHC);

@@ -2,12 +2,20 @@
 #include "time_logic.h"
 #include "log_handler.h"
 
-void WifiLogic::init(WifiSettingsStruct &settings, TemperatureLogic *temperatureLogic, IOController *ioController) {
+void WifiLogic::init(WifiSettingsStruct *settings, TemperatureLogic *temperatureLogic, IOController *ioController) {
   this->temperatureLogic = temperatureLogic;
   this->ioController = ioController;
 
   this->settingsData = settings;
   
+  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("AP: "), this->settingsData->apIndex);
+  
+  this->ioController->addPropertyValueListener(PIN_PUMP_HC_INDEX, this);
+  this->ioController->addPropertyValueListener(PIN_PUMP_WATER_INDEX, this);
+  this->ioController->addPropertyValueListener(PIN_FLOW_SWITCH_INDEX, this);
+  
+  InputHandler::registerListener(this);
+
   myEsp.init();
 
   myEsp.softReset();
@@ -19,11 +27,26 @@ void WifiLogic::init(WifiSettingsStruct &settings, TemperatureLogic *temperature
   if (!connectAp()) return;
 
   myClient.init(&myEsp);
-
-  this->ioController->addPropertyValueListener(PIN_PUMP_HC_INDEX, this);
-  this->ioController->addPropertyValueListener(PIN_PUMP_WATER_INDEX, this);
-  this->ioController->addPropertyValueListener(PIN_FLOW_SWITCH_INDEX, this);
 }
+
+String WifiLogic::getName() {
+  return WIFI_HANDLER_MODULE_NAME;
+}
+
+bool WifiLogic::onInput(String cmd) {
+  if (cmd.startsWith(F("AP"))) {
+    String v1;
+    int v2;
+    
+    if (InputHandler::parseParameters2(cmd, v1, v2)) {
+      LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("AP:"), v2);
+      this->settingsData->apIndex = v2;
+    }
+  } else if (cmd.startsWith(F("SYNC"))) {
+    syncData();
+  }
+}
+
 
 void WifiLogic::onPropertyValueChange(uint8_t id, int value) {
   switch(id) {
@@ -51,7 +74,7 @@ bool WifiLogic::connectAp() {
   String ssid;
   String pw;
 
-  switch(this->settingsData.apIndex) {
+  switch(this->settingsData->apIndex) {
     case WIFI_AP_STALNET_REPEAT:
       ssid = F("StalnetRepeat");
       pw = F("wlandome");
@@ -61,7 +84,10 @@ bool WifiLogic::connectAp() {
       pw = F("wlandome");
       break;
     default:
-      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Unknown AP"));
+      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Unknown AP - using default"));
+      ssid = F("StalnetRepeat");
+      pw = F("wlandome");
+      break;
   }
   
   bool returnVal = myEsp.apJoin(ssid, pw);
@@ -95,17 +121,26 @@ void WifiLogic::syncData(int freeRam) {
     // tempHC
     addParam(query, 2, temperatureLogic->getCurrentTemperatureHC());
 
+    // tempTank
+    addParam(query, 3, temperatureLogic->getCurrentTemperatureTank());
+
     // pumpW
-    addParam(query, 3, ((int)wST.currentMs()/1000));
+    addParam(query, 4, ((int)wST.currentMs()/1000));
 
     // pumpHC
-    addParam(query, 4, ((int)hcST.currentMs()/1000));
+    addParam(query, 5, ((int)hcST.currentMs()/1000));
 
     // flowSwitch
-    addParam(query, 5, ((int)fsST.currentMs()/1000));
+    addParam(query, 6, ((int)fsST.currentMs()/1000));
 
     // free ram
-    addParam(query, 6, freeRam);
+    addParam(query, 7, freeRam);
+
+
+    if (firstTime) {
+      addParam(query, 8, 1);
+      firstTime = false;
+    }
 
     if (!myClient.executeGET(query, WIFI_REMOTE_HOST, HTTP_CONN_MODE_CLOSE, response)) {
       LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Error @ GET"));

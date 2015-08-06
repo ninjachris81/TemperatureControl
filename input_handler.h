@@ -13,7 +13,7 @@
 
 #define ERROR_WHILE_PARSING_PARAMS "Err @parsing params"
 
-#define MAX_INPUT_LISTENERS 12
+#define MAX_INPUT_LISTENERS 16
 
 class InputHandler {
 public:

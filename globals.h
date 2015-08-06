@@ -2,7 +2,7 @@
 #define globals_h
 
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-  #define MODNAME(n) (F(#n))
+  #define MODNAME(n) (F(n))
 #else
   #define MODNAME(n) (n)
 #endif

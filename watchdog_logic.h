@@ -9,6 +9,7 @@
 #include "WProgram.h"
 #endif
 
+#define WDOG_HANDLER_MODULE_NAME MODNAME("WDOG")
 
 #define SEND_INTERVAL_MIN_MS 5000
 

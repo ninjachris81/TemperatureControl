@@ -8,7 +8,6 @@
 #endif
 
 #include "globals.h"
-#include "led_logic.h"
 #include "input_handler.h"
 
 #define DEBUG_PRINT
@@ -45,11 +44,10 @@ public:
   
   static LogListener* _listeners[MAX_LOG_LISTENERS];
   static uint8_t listenerCount;
-  static LedLogic *ledLogic;
   static bool hasFatalError;
   static bool doLog;
   
-  static void init(LedLogic *ledLogic);
+  static void init();
 
   static void logMsg(String moduleName, String msg);
 

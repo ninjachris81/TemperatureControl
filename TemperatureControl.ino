@@ -7,12 +7,6 @@
 
 #define MAIN_MODULE_NAME MODNAME("MAIN")
 
-
-//MODNAME(MAIN)
-//#define MODNAME(string_literal) (reinterpret_cast<const __FlashStringHelper *>(PSTR(string_literal)))
-
-//MODNAME("wrg")
-
 #include "input_handler.h"
 #include "bluetooth_logic.h"
 #include "settings.h"
@@ -47,27 +41,28 @@ int getFreeRam()
 void setup() {
   delay(1000);
 
-  LogHandler::init(&led);
+  LogHandler::init();
   LogHandler::logMsg(MAIN_MODULE_NAME, F("Temp Ctrl v0.1"));
   led.init();
   
   settings.init();
   settings.loadSettings();
-  ioController.init(settings.settingsData.io);
+  ioController.init(&settings.settingsData.io);
   time.init();
-  temp.init(settings.settingsData.temp, &ioController);
+  temp.init(&settings.settingsData.temp, &ioController);
 
   serialApi.init();
   
   bluetooth.init();
 
-  wifiLogic.init(settings.settingsData.wifi, &temp, &ioController);
+  wifiLogic.init(&settings.settingsData.wifi, &temp, &ioController);
 
   watchdogLogic.init();
   
   if (!LogHandler::hasFatalError) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
   } else {
+    led.setInterval(LED_ERROR_INTERVAL_MS);
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Error @ init"));
   }
 
@@ -75,7 +70,11 @@ void setup() {
   delay(3000);
   doExecuteProg = (Serial.read()==-1);
 
-  if (!doExecuteProg) LogHandler::logMsg(MAIN_MODULE_NAME, F("Startup interrupt"));
+  if (!doExecuteProg) {
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Startup interrupt"));
+  } else {
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Starting"));
+  }
   LogHandler::doLog = false;
 }
 

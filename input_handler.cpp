@@ -37,9 +37,11 @@ void InputHandler::executeCmd(String cmd) {
 }
 
 void InputHandler::registerListener(InputListener* listener) {
-  if (listenerCount==MAX_INPUT_LISTENERS) {
-    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Max IH"), listener->getName());
+  if (listenerCount>=MAX_INPUT_LISTENERS) {
+    LogHandler::warning(INPUT_HANDLER_MODULE_NAME, F("Max IH "), listener->getName());
     return;
+  } else {
+    //LogHandler::logMsg(INPUT_HANDLER_MODULE_NAME, F("Reg IH "), listener->getName());
   }
   
   listeners[listenerCount] = listener;

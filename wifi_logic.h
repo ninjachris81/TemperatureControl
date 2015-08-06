@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "esp8266_httpclient.h"
 #include "temperature_logic.h"
+#include "input_handler.h"
 #include "iocontroller.h"
 #include "property.h"
 #include "stop_timer.h"
@@ -23,16 +24,19 @@
 #define WIFI_REMOTE_IP F("184.106.153.149")
 #define WIFI_REMOTE_HOST F("api.thingspeak.com")
 
-class WifiLogic: public Property::ValueChangeListener {
+class WifiLogic: public InputHandler::InputListener, public Property::ValueChangeListener {
 public:
 
   struct WifiSettingsStruct {
     byte apIndex;
-  } settingsData;
+  } *settingsData;
   
-  void init(WifiSettingsStruct &settings, TemperatureLogic *temperatureLogic, IOController *ioController);
+  void init(WifiSettingsStruct *settings, TemperatureLogic *temperatureLogic, IOController *ioController);
 
   void update(int freeRam);
+
+  /*virtual*/ String getName();
+  /*virtual*/ bool onInput(String cmd);
 
 private:
   ESP8266 myEsp;
@@ -47,6 +51,8 @@ private:
   StopTimer hcST;
   StopTimer wST;
   StopTimer fsST;
+
+  bool firstTime = true;
 
   bool connectAp();
   

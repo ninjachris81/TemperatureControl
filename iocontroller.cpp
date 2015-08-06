@@ -3,7 +3,7 @@
 #include "log_handler.h"
 #include "output_handler.h"
 
-void IOController::init(IOSettingsStruct &settings) {
+void IOController::init(IOSettingsStruct *settings) {
   //LogHandler::logMsg(IOC_MODULE_NAME, F("Init"));
   
   this->settingsData = settings;
@@ -35,7 +35,7 @@ void IOController::setValue(int pin, int pinIndex, bool enable) {
 }
 
 void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
-  switch(settingsData.ioModes[pinIndex]) {
+  switch(settingsData->ioModes[pinIndex]) {
     case PUMP_MODE_ON:
       enable = true;
       break;
@@ -50,7 +50,7 @@ void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
   bool value = getPropertyValue(pinIndex);
   if (!force && value==enable) return;    // already set
   
-  LogHandler::logMsg(IOC_MODULE_NAME, F("MODE: "), settingsData.ioModes[pinIndex]);
+  LogHandler::logMsg(IOC_MODULE_NAME, F("MODE: "), settingsData->ioModes[pinIndex]);
 
   String msg = F("Set PIN ");
   msg.concat(pin);
@@ -144,7 +144,7 @@ bool IOController::onInput(String cmd) {
       if (v1==F("MODE")) {
         if (v3>=PUMP_MODE_OFF&&v3<=PUMP_MODE_AUTO) {
           LogHandler::logMsg(IOC_MODULE_NAME, F("Set mode: "), v3);
-          settingsData.ioModes[ioIndex] = v3;
+          settingsData->ioModes[ioIndex] = v3;
           setValue(ioDevice, ioIndex, v2==1);
           return true;
         } else {
@@ -181,7 +181,7 @@ void IOController::_sendIOState() {
 }
 
 void IOController::update() {
-  if (settingsData.ioModes[PIN_FLOW_SWITCH_INDEX]!=PUMP_MODE_AUTO) return;
+  if (settingsData->ioModes[PIN_FLOW_SWITCH_INDEX]!=PUMP_MODE_AUTO) return;
   
   int val = !digitalRead(PIN_FLOW_SWITCH);
   bool orgVal = this->fsState.getValue();
