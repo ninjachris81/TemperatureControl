@@ -16,17 +16,34 @@ void WifiLogic::init(WifiSettingsStruct *settings, TemperatureLogic *temperature
   
   InputHandler::registerListener(this);
 
-  myEsp.init();
+  myClient.init(this);
 
-  myEsp.softReset();
+  readyToSend = false;
 
-  myEsp.echoOff();
+  initConnection();
+}
 
-  myEsp.test();
-  
-  if (!connectAp()) return;
+void WifiLogic::initConnection() {
+  String ssid;
+  String pw;
 
-  myClient.init(&myEsp);
+  switch(this->settingsData->apIndex) {
+    case WIFI_AP_STALNET_REPEAT:
+      ssid = F("StalnetRepeat");
+      pw = F("wlandome");
+      break;
+    case WIFI_AP_STALNET:
+      ssid = F("Stalnet");
+      pw = F("wlandome");
+      break;
+    default:
+      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Unknown AP - using default"));
+      ssid = F("StalnetRepeat");
+      pw = F("wlandome");
+      break;
+  }
+
+  myClient.initConnection(ssid, pw);
 }
 
 String WifiLogic::getName() {
@@ -42,8 +59,10 @@ bool WifiLogic::onInput(String cmd) {
       LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("AP:"), v2);
       this->settingsData->apIndex = v2;
     }
-  } else if (cmd.startsWith(F("SYNC"))) {
-    syncData(0);
+  } else if (cmd == F("GET")) {
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("RTS:"), readyToSend);
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("Sending in "), (WIFI_CHECK_INTERVAL_MIN_MS - (millis() - lastUpdate)));
+    
   }
 }
 
@@ -70,100 +89,117 @@ void WifiLogic::setStopTimer(StopTimer &timer, int value) {
     }
 }
 
-bool WifiLogic::connectAp() {
-  String ssid;
-  String pw;
-
-  switch(this->settingsData->apIndex) {
-    case WIFI_AP_STALNET_REPEAT:
-      ssid = F("StalnetRepeat");
-      pw = F("wlandome");
-      break;
-    case WIFI_AP_STALNET:
-      ssid = F("Stalnet");
-      pw = F("wlandome");
-      break;
-    default:
-      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Unknown AP - using default"));
-      ssid = F("StalnetRepeat");
-      pw = F("wlandome");
-      break;
-  }
-  
-  bool returnVal = myEsp.apJoin(ssid, pw);
-  if (returnVal) {
-    status = WIFI_STATUS_CONNECTED_AP;
-  }
-  return returnVal;
-}
-
 
 void WifiLogic::update(int freeRam) {
+  this->freeRam = freeRam;
+  
+  myClient.update();
+
   if (lastUpdate==0 || millis() - lastUpdate >= WIFI_CHECK_INTERVAL_MIN_MS) {
-    lastUpdate = millis();
-    
-    if (status!=WIFI_STATUS_CONNECTED_AP){
-      if (!connectAp()) return;
+    if (readyToSend) {
+      lastUpdate = millis();
+      myClient.connectToServer(WIFI_REMOTE_IP);    // connect and send data
+    } else {
+      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Not ready, waiting..."));
     }
-    
-    syncData(freeRam);
   }
 }
 
-void WifiLogic::syncData(int freeRam) {
-  if (myClient.connectToServer(WIFI_REMOTE_IP)) {
-    String response = "";
-    String query = F("/update?key=CZPKJGC87RGLCY6J");
-    
-    // tempW
-    addParam(query, 1, temperatureLogic->getCurrentTemperatureW());
-    
-    // tempHC
-    addParam(query, 2, temperatureLogic->getCurrentTemperatureHC());
-
-    // tempTank
-    addParam(query, 3, temperatureLogic->getCurrentTemperatureTank());
-
-    // pumpW
-    addParam(query, 4, ((int)wST.currentMs()/1000));
-
-    // pumpHC
-    addParam(query, 5, ((int)hcST.currentMs()/1000));
-
-    // flowSwitch
-    addParam(query, 6, ((int)fsST.currentMs()/1000));
-
-    // free ram
-    addParam(query, 7, freeRam);
-
-
-    if (firstTime) {
-      addParam(query, 8, 1);
-      firstTime = false;
-    }
-
-    if (!myClient.executeGET(query, WIFI_REMOTE_HOST, HTTP_CONN_MODE_CLOSE, response)) {
-      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Error @ GET"));
-    } else {
-      uint8_t h, m;
-      parseDate(response, h, m);
-
-      // temp hack
-      h+=2;
-      h=h%24;
-
-      
-      TimeLogic::save(h, m, 0);
-
-      wST.reset();
-      hcST.reset();
-      fsST.reset();
-    }
+void WifiLogic::initComplete(bool success) {
+  readyToSend = success;
+  if (success) {
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("Init complete"));
   } else {
-    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Connect Fail"));
+    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Init failed"));
+    myClient.deinitConnection();
+  }
+}
+
+void WifiLogic::connectToServerComplete(bool success) {
+  readyToSend = false;
+  
+  if (success) {
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("Connect complete"));
+    myClient.executeGET(buildQuery(this->freeRam), WIFI_REMOTE_HOST, HTTP_CONN_MODE_CLOSE);
+  } else {
+    myClient.disconnectFromServer();
+    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Connect failed"));
+  }
+}
+
+void WifiLogic::executeGETComplete(bool success, String response) {
+  readyToSend = false;
+
+  if (success) {
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("GET complete"));
+    
+    uint8_t h, m;
+    parseDate(response, h, m);
+
+    // temp hack
+    h+=2;
+    h=h%24;
+
+    
+    TimeLogic::save(h, m, 0);
+
+    wST.reset();
+    hcST.reset();
+    fsST.reset();
+  } else {
+    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("GET failed"));
   }
 
   myClient.disconnectFromServer();
+}
+
+void WifiLogic::disconnectComplete(bool success) {
+  readyToSend = success;
+  if (success) {
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("Disconnect complete"));
+  } else {
+    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Disconnect failed"));
+    myClient.deinitConnection();
+  }
+}
+
+void WifiLogic::deinitComplete(bool success) {
+  readyToSend = false;
+  LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Deinit complete - reinit"));
+  initConnection();
+}
+
+String WifiLogic::buildQuery(int freeRam) {
+  String query = F("/update?key=CZPKJGC87RGLCY6J");
+  
+  // tempW
+  addParam(query, 1, temperatureLogic->getCurrentTemperatureW());
+  
+  // tempHC
+  addParam(query, 2, temperatureLogic->getCurrentTemperatureHC());
+
+  // tempTank
+  addParam(query, 3, temperatureLogic->getCurrentTemperatureTank());
+
+  // pumpW
+  addParam(query, 4, ((int)wST.currentMs()/1000));
+
+  // pumpHC
+  addParam(query, 5, ((int)hcST.currentMs()/1000));
+
+  // flowSwitch
+  addParam(query, 6, ((int)fsST.currentMs()/1000));
+
+  // free ram
+  addParam(query, 7, freeRam);
+
+
+  if (firstTime) {
+    addParam(query, 8, 1);
+    firstTime = false;
+  }
+
+  return query;
 }
 
 void WifiLogic::addParam(String &query, uint8_t index, int value) {
@@ -172,7 +208,6 @@ void WifiLogic::addParam(String &query, uint8_t index, int value) {
   query+=F("=");
   query+=value;
 }
-
 
 void WifiLogic::parseDate(String inputStr, uint8_t &h, uint8_t &m) {
   int i = inputStr.indexOf(F("Date:"));

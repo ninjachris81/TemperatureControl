@@ -3,6 +3,28 @@
 
 void ESP8266::init() {
   esp.begin(ESP_BAUD_RATE);
+  esp.setTimeout(ESP_TIMEOUT_MS);
+  clearTask();
+}
+
+void ESP8266::setTaskCallbackHandler(TaskCallbackHandler* tcbh) {
+  this->tcbh = tcbh;
+}
+
+void ESP8266::clearTask() {
+  currentTask.currentTimeout = ESP_DEFAULT_REQUEST_TIMEOUT_MS;
+  currentTask.startedAt = 0;
+  currentTask.isTimeout = false;
+  
+  currentTask.type = ESP_TASK_TYPE_NONE;
+  currentTask.id = 0;
+  currentTask.state = 0;
+  currentTask.dataToSend = "";
+  currentTask.sendOffset = 0;
+}
+
+void ESP8266::printTask() {
+  Serial.println(currentTask.type);
 }
 
 void ESP8266::setBaudRate() {
@@ -13,49 +35,125 @@ void ESP8266::setBaudRate() {
 }
 
 bool ESP8266::setTimeout(int timeoutMs) {
-  esp.setTimeout(timeoutMs);
   String cmd = F("AT+CIPSTO=");
   cmd+=timeoutMs;
   return sendCommandAndWait(cmd);
 }
 
-bool ESP8266::test() {
-  return sendCommandAndWait(F("AT"));
+void ESP8266::test() {
+  currentTask.type = ESP_TASK_TYPE_TEST;
+  
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Test"));
+  sendCommand(F("AT"));    // echo off
 }
 
-bool ESP8266::echoOff() {
-  return sendCommandAndWait(F("ATE0"));    // echo off
+void ESP8266::_test() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->testComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->testComplete(false);
+  }
+}
+
+void ESP8266::echoOff() {
+  currentTask.type = ESP_TASK_TYPE_ECHO_OFF;
+  
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Echo off"));
+  sendCommand(F("ATE0"));    // echo off
+}
+
+void ESP8266::_echoOff() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->echoOffComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->echoOffComplete(false);
+  }
 }
 
 
-bool ESP8266::softReset() {
-  bool returnVal = sendCommandAndWait(F("AT+RST"));
-  delay(2000);
-  return returnVal;
+void ESP8266::softReset() {
+  currentTask.type = ESP_TASK_TYPE_SOFT_RESET;
+
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Soft reset"));
+  sendCommand(F("AT+RST"));
 }
 
-void ESP8266::getStatus() {
-  sendCommand(F("AT+CIPSTATUS"));
-  LogHandler::logMsg(ESP8266_MODULE_NAME, F("STATE: "), readResponse());
+void ESP8266::_softReset() {
+  if (waitForResponse("wdt reset")) {
+    delay(1000);
+    clearTask();
+    this->tcbh->softResetComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->softResetComplete(false);
+  }
 }
 
-bool ESP8266::setConnMode(int mode) {
+void ESP8266::setNetworkMode(uint8_t mode) {
+  currentTask.type = ESP_TASK_TYPE_NETWORK_MODE;
+
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Network mode"));
+  String cmd = F("AT+CWMODE=");
+  cmd+=mode;
+  sendCommand(cmd);
+}
+
+void ESP8266::_setNetworkMode() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->networkModeComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->networkModeComplete(false);
+  }
+}
+
+void ESP8266::apJoin(String name, String password) {
+  currentTask.type = ESP_TASK_TYPE_AP_JOIN;
+
+  String cmd = F("AT+CWJAP=\"");
+  cmd+=name;
+  cmd+="\",\"";
+  cmd+=password;
+  cmd+="\"";
+  sendCommand(cmd);
+}
+
+void ESP8266::_apJoin() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->apJoinComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->apJoinComplete(false);
+  }
+}
+
+void ESP8266::setConnMode(uint8_t mode) {
+  currentTask.type = ESP_TASK_TYPE_CONN_MODE;
+
   String cmd = F("AT+CIPMUX=");
   cmd+=mode;
-  return sendCommandAndWait(cmd);
+  sendCommand(cmd);
 }
 
-bool ESP8266::serverMode(int mode, int port) {
-  String cmd = F("AT+CIPSERVER=");
-  cmd+=mode;
-  if (port!=-1) {
-    cmd+=",";
-    cmd+=port;
+void ESP8266::_setConnMode() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->connModeComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->connModeComplete(false);
   }
-  return sendCommandAndWait(cmd);
 }
 
-bool ESP8266::clientMode(int id, String type, String ip, int port) {
+void ESP8266::connectToServer(int id, String type, String ip, uint16_t port) {
+  currentTask.type = ESP_TASK_TYPE_CONNECT_TO_SERVER;
+
   String cmd = F("AT+CIPSTART=");
   if (id>=0) {
     cmd+=id + ",";
@@ -67,83 +165,136 @@ bool ESP8266::clientMode(int id, String type, String ip, int port) {
   cmd+=ip;
   cmd+="\",";
   cmd+=port;
-  return sendCommandAndWait(cmd);
+  sendCommand(cmd);
 }
 
-
-bool ESP8266::beginData(int id, uint16_t dataLength) {
-  String cmd = F("AT+CIPSEND=");
-  cmd+=id;
-  cmd+=",";
-  cmd+=dataLength;
-  
-  return sendCommandAndWait(cmd, ">");
-}
-
-bool ESP8266::postData(byte data) {
-  esp.print(data);
-}
-
-bool ESP8266::sendData(int id, String data) {
-  
-  if (data.length()<=SEND_BUFFER_SIZE) {
-    return _sendData(id, data);
-  } else {
-    int start = 0;
-    int end = SEND_BUFFER_SIZE;
-    
-    do {
-      if (!_sendData(id, data.substring(start, min(end, data.length())))) return false;
-      if (end>data.length()) {
-        return true;
-      }
-      start+=SEND_BUFFER_SIZE;
-      end+=SEND_BUFFER_SIZE;
-    } while(true);
-    
+void ESP8266::_connectToServer() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->connectToServerComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->connectToServerComplete(false);
   }
 }
 
-bool ESP8266::_sendData(int id, String data) {
+void ESP8266::getStatus() {
+  sendCommand(F("AT+CIPSTATUS"));
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("STATE: "), readResponse());
+}
+
+bool ESP8266::serverMode(uint8_t mode, int port) {
+  String cmd = F("AT+CIPSERVER=");
+  cmd+=mode;
+  if (port!=-1) {
+    cmd+=",";
+    cmd+=port;
+  }
+  return sendCommandAndWait(cmd);
+}
+
+bool ESP8266::sendData(int id, String data) {
+  currentTask.dataToSend = data;
+  currentTask.sendOffset = 0;
+  currentTask.currentTimeout = ESP_DEFAULT_REQUEST_TIMEOUT_MS + (data.length() * ESP_SEND_DATA_TIMEOUT_FACTOR);
+  currentTask.type = ESP_TASK_TYPE_SEND_DATA;
+  currentTask.state = ESP_STATE_SEND_WAIT_FOR_READY;
+  _sendDataInit(id, data.length());
+}
+
+void ESP8266::_sendDataInit(int id, int dataSize) {
   String cmd = F("AT+CIPSEND=");
   if (id>=0) {
     cmd+=id;
     cmd+=",";
   }
-  cmd+=data.length();
+  cmd+=dataSize;
+  sendCommand(cmd);
+}
+
+void ESP8266::_sendNextDataPacket() {
+  int endOffset = min(currentTask.sendOffset + SEND_BUFFER_SIZE, currentTask.dataToSend.length());
+
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Sending next packet: "), currentTask.sendOffset);
+  LogHandler::logMsg(ESP8266_MODULE_NAME, F("Sending next packet: "), endOffset);
   
-  if (sendCommandAndWait(cmd, ">")) {
-    return sendCommandAndWait(data, F("SEND OK"), 10000, false);
+  sendCommand(currentTask.dataToSend.substring(currentTask.sendOffset, endOffset), false);
+  currentTask.sendOffset = endOffset;
+  
+  if (currentTask.sendOffset>=currentTask.dataToSend.length()) {
+    // end, all will be sent now
+    LogHandler::logMsg(ESP8266_MODULE_NAME, F("wait for send"));
+    currentTask.state = ESP_STATE_SEND_WAIT_FOR_SENT_OK;
   } else {
-    return false;
+    // still data to send
+    LogHandler::logMsg(ESP8266_MODULE_NAME, F("next packet"));
+    currentTask.state = ESP_STATE_SEND_NEXT_PACKET;
   }
 }
 
-bool ESP8266::apJoin(String name, String password) {
-  sendCommandAndWait(F("AT+CWMODE=1"));
+void ESP8266::_sendData() {
 
-  String cmd = F("AT+CWJAP=\"");
-  cmd+=name;
-  cmd+="\",\"";
-  cmd+=password;
-  cmd+="\"";
-  return sendCommandAndWait(cmd);
+  switch(currentTask.state) {
+    case ESP_STATE_SEND_WAIT_FOR_READY:
+      if (waitForResponse(">")) {
+        // send next
+        _sendNextDataPacket();
+      }
+      break;
+    case ESP_STATE_SEND_WAIT_FOR_SENT_OK:
+      if (waitForResponse(F("SEND OK"))) {
+        clearTask();
+        this->tcbh->sendDataComplete(true);
+      }      
+      break;
+    case ESP_STATE_SEND_NEXT_PACKET:
+      _sendNextDataPacket();
+      break;
+  }
+  
+  if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->sendDataComplete(false);
+  }
 }
 
-bool ESP8266::apQuit() {
-  return sendCommandAndWait(F("AT+CWQAP"));
+void ESP8266::apQuit() {
+  currentTask.type = ESP_TASK_TYPE_AP_QUIT;
+  sendCommand(F("AT+CWQAP"));
+}
+
+void ESP8266::_apQuit() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->apQuitComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->apQuitComplete(false);
+  }  
 }
 
 bool ESP8266::apInRange(String name) {
   sendCommand(F("AT+CWLAP"));
 }
 
-bool ESP8266::connClose(int id) {
+void ESP8266::closeConn(int id) {
+  currentTask.type = ESP_TASK_TYPE_CLOSE_CONN;
+
   String cmd = F("AT+CIPCLOSE");
   if (id>=0) {
     cmd+="=" + id;
   }
-  return sendCommandAndWait(cmd);
+  sendCommand(cmd);
+}
+
+void ESP8266::_closeConn() {
+  if (waitForResponse()) {
+    clearTask();
+    this->tcbh->closeConnComplete(true);
+  } else if (currentTask.isTimeout) {
+    clearTask();
+    this->tcbh->closeConnComplete(false);
+  }  
 }
 
 String ESP8266::getIp() {
@@ -151,6 +302,61 @@ String ESP8266::getIp() {
 }
 
 void ESP8266::update() {
+  if (currentTask.type!=ESP_TASK_TYPE_NONE) {
+    if (currentTask.isTimeout) {
+      clearTask();
+    }
+
+    if (currentTask.startedAt==0) {
+      currentTask.startedAt = millis();
+    } else if (millis() - currentTask.startedAt > currentTask.currentTimeout) {
+      // timeout
+      LogHandler::logMsg(ESP8266_MODULE_NAME, F("Command timeout"), currentTask.type);
+      currentTask.isTimeout = true;
+    }
+
+    byte result;
+
+    //LogHandler::logMsg(ESP8266_MODULE_NAME, F("Processing task: "), currentTask.type);
+    //LogHandler::logMsg(ESP8266_MODULE_NAME, F("Processing task: "), currentTask.subType);
+
+    switch(currentTask.type) {
+      case ESP_TASK_TYPE_SOFT_RESET:
+        _softReset();
+        break;
+      case ESP_TASK_TYPE_ECHO_OFF:
+        _echoOff();
+        break;
+      case ESP_TASK_TYPE_TEST:
+        _test();
+        break;
+      case ESP_TASK_TYPE_NETWORK_MODE:
+        _setNetworkMode();
+        break;
+      case ESP_TASK_TYPE_AP_JOIN:
+        _apJoin();
+        break;
+      case ESP_TASK_TYPE_CONN_MODE:
+        _setConnMode();
+        break;
+      case ESP_TASK_TYPE_CONNECT_TO_SERVER:
+        _connectToServer();
+        break;
+      case ESP_TASK_TYPE_SEND_DATA:
+        _sendData();
+        break;
+      case ESP_TASK_TYPE_CLOSE_CONN:
+        _closeConn();
+        break;
+      case ESP_TASK_TYPE_AP_QUIT:
+        _apQuit();
+        break;
+      default:
+        LogHandler::warning(ESP8266_MODULE_NAME, F("Unhandled task type: "), currentTask.type);
+    }
+  } else {
+    //LogHandler::logMsg(ESP8266_MODULE_NAME, F("No tasks: "), taskQueue.count());
+  } 
   
 }
 
@@ -188,7 +394,7 @@ bool ESP8266::waitForResponse(String expectedResult, int timeoutMs) {
     LogHandler::logMsg(ESP8266_MODULE_NAME, F("RECV: "), expectedResult);
     return true;
   } else {
-    LogHandler::warning(ESP8266_MODULE_NAME, F("TIMEOUT WAITING FOR "), expectedResult);
+    //LogHandler::warning(ESP8266_MODULE_NAME, F("TIMEOUT WAITING FOR "), expectedResult);
     return false;
   }
 }

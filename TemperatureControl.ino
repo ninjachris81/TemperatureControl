@@ -71,16 +71,24 @@ void setup() {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Error @ init"));
   }
 
-  LogHandler::logMsg(MAIN_MODULE_NAME, F("Press any key to interrupt startup"));
-  delay(3000);
-  doExecuteProg = (Serial.read()==-1);
+  LogHandler::logMsg(MAIN_MODULE_NAME, F("Press any key to interrupt startup or 'L' to enable log "));
+  delay(4000);
+  int readByte = Serial.read();
+
+    if (readByte=='l' || readByte=='L') {
+    // nothing, by default log is enabled
+    doExecuteProg = true;
+    LogHandler::logMsg(MAIN_MODULE_NAME, F("Log enabled"));
+  } else {
+    doExecuteProg = (readByte==-1);
+    LogHandler::doLog = false;
+  }
 
   if (!doExecuteProg) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Startup interrupt"));
   } else {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Starting"));
   }
-  LogHandler::doLog = false;
 }
 
 void loop() {
