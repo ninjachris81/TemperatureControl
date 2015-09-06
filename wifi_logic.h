@@ -14,8 +14,8 @@
 #define WIFI_AP_STALNET_REPEAT 0
 #define WIFI_AP_STALNET 1
 
-#define WIFI_CHECK_INTERVAL_MIN_MS 300000   // 5 minutes
-//#define WIFI_CHECK_INTERVAL_MIN_MS 600000   // 10 minutes
+//#define WIFI_CHECK_INTERVAL_MIN_MS 300000   // 5 minutes
+#define WIFI_CHECK_INTERVAL_MIN_MS 600000   // 10 minutes
 //#define WIFI_CHECK_INTERVAL_MIN_MS 60000   // 1 minute
 
 #define WIFI_STATUS_INIT 0

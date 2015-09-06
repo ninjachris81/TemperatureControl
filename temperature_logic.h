@@ -38,6 +38,7 @@ public:
       byte preheatingDurationMinutes;
       
       int tempSwitches1;
+      byte lagSec;
     } *settingsData;
 
   void init(TempSettingsStruct *settings, IOController *ioController);
@@ -66,6 +67,8 @@ private:
   
   unsigned long lastUpdate = 0;
   unsigned long lastTempCheck = 0;
+
+  unsigned long lastLagEnabled = 0;
   
   IOController *ioController;
 
@@ -74,6 +77,7 @@ private:
   
   void checkDefault(bool &enablePumpW, bool &enablePumpHC);
   void checkPreheating(bool &enablePumpW, bool &enablePumpHC);
+  void checkLag(bool &enablePumpW, bool &enablePumpHC);
   
   void simulateTemperature(int temperatureW, int temperatureHC);
   

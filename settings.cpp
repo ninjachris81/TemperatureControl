@@ -42,6 +42,8 @@ bool Settings::onInput(String cmd) {
     tmpStr.concat(settingsData.temp.preheatingDurationMinutes);
     tmpStr.concat(concatStr);
     tmpStr.concat(settingsData.temp.tempSwitches1);
+    tmpStr.concat(concatStr);
+    tmpStr.concat(settingsData.temp.lagSec);
     
     // IO stuff
     // 9-10
@@ -106,6 +108,7 @@ void Settings::defaultSettings() {
   settingsData.temp.preheatingStart10Minutes = 42;    // 7 am (7 * 6)
   settingsData.temp.preheatingDurationMinutes = 5;      // 5 min
   settingsData.temp.tempSwitches1 = 0;
+  settingsData.temp.lagSec = 15;
   
   settingsData.io.ioModes[PIN_PUMP_HC_INDEX] = PUMP_MODE_AUTO;
   settingsData.io.ioModes[PIN_PUMP_WATER_INDEX] = PUMP_MODE_AUTO; 

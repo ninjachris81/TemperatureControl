@@ -7,6 +7,7 @@
 
 #define MAIN_MODULE_NAME MODNAME("MAIN")
 
+#include "error_handler.h"
 #include "input_handler.h"
 #include "bluetooth_logic.h"
 #include "settings.h"
@@ -38,6 +39,10 @@ int getFreeRam()
   return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
 }
 
+void softReset() {
+  asm volatile ("  jmp 0");
+}
+
 void setup() {
   delay(1000);
 
@@ -59,7 +64,7 @@ void setup() {
 
   watchdogLogic.init();
   
-  if (!LogHandler::hasFatalError) {
+  if (!ErrorHandler::hasFatalErrors()) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
   } else {
     led.setInterval(LED_ERROR_INTERVAL_MS);
@@ -101,8 +106,7 @@ void loop() {
 
   wifiLogic.update(freeRam);
 
-  watchdogLogic.update();
-
-  //if (!LogHandler::hasFatalError) {
-  //}
+  if (!ErrorHandler::hasFatalErrors()) {
+    watchdogLogic.update();
+  }
 }

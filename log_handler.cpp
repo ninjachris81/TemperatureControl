@@ -2,7 +2,6 @@
 
 LogHandler::LogListener* LogHandler::_listeners[MAX_LOG_LISTENERS];
 uint8_t LogHandler::listenerCount = 0;
-bool LogHandler::hasFatalError = false;
 bool LogHandler::doLog = true;
 LogHandler* LogHandler::logHandler = NULL;
   
@@ -155,8 +154,6 @@ void LogHandler::fatal(String moduleName, String msg) {
   DEBUG_SERIAL.println(str);
 #endif
 
-  LogHandler::hasFatalError = true;
-  
   sendToListeners(str, FATAL);
 }
 

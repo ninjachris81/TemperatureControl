@@ -44,7 +44,6 @@ public:
   
   static LogListener* _listeners[MAX_LOG_LISTENERS];
   static uint8_t listenerCount;
-  static bool hasFatalError;
   static bool doLog;
   
   static void init();

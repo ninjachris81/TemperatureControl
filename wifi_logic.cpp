@@ -43,7 +43,7 @@ bool WifiLogic::onInput(String cmd) {
       this->settingsData->apIndex = v2;
     }
   } else if (cmd.startsWith(F("SYNC"))) {
-    syncData();
+    syncData(0);
   }
 }
 
@@ -147,6 +147,12 @@ void WifiLogic::syncData(int freeRam) {
     } else {
       uint8_t h, m;
       parseDate(response, h, m);
+
+      // temp hack
+      h+=2;
+      h=h%24;
+
+      
       TimeLogic::save(h, m, 0);
 
       wST.reset();

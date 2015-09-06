@@ -2,6 +2,7 @@
 #include "settings.h"
 #include "output_handler.h"
 #include "log_handler.h"
+#include "error_handler.h"
 
 TemperatureLogic::TemperatureLogic() {
   this->wire = new OneWire(PIN_TEMP);
@@ -117,6 +118,7 @@ void TemperatureLogic::update() {
     
     checkDefault(enablePumpW, enablePumpHC);
     if (!enablePumpW || !enablePumpHC) checkPreheating(enablePumpW, enablePumpHC);
+    if (!enablePumpW || !enablePumpHC) checkLag(enablePumpW, enablePumpHC);
 
     //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpW: "), enablePumpW ? ENABLED_STRING : DISABLED_STRING);
     //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("PumpHC: "), enablePumpHC ? ENABLED_STRING : DISABLED_STRING);
@@ -136,6 +138,7 @@ void TemperatureLogic::checkDefault(bool &enablePumpW, bool &enablePumpHC) {
 //      LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Flow Switch is On"));
       enablePumpW = true;
       enablePumpHC = true;
+      lastLagEnabled = millis();
     } else {
       // check maintain temp mode
       byte currentMinute10 = (RTC.hour * MINUTE10_FACTOR) + (RTC.minute / (60/MINUTE10_FACTOR));
@@ -170,6 +173,13 @@ void TemperatureLogic::checkPreheating(bool &enablePumpW, bool &enablePumpHC) {
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Preheating - Out of time frame, current: "), currentMinute);
       */
     }
+}
+
+void TemperatureLogic::checkLag(bool &enablePumpW, bool &enablePumpHC) {
+  if (millis() - lastLagEnabled <= settingsData->lagSec * 1000) {
+    LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Lagging "), (millis() - lastLagEnabled));
+    enablePumpHC = true;
+  }
 }
 
 void TemperatureLogic::_updateData(bool forceUpdate) {
@@ -211,6 +221,12 @@ void TemperatureLogic::_updateData(bool forceUpdate, bool &hasUpdatedW, bool &ha
     hasUpdatedTank = this->tempTank.setValue(temp);
     if (hasUpdatedTank) {
       LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Temp Tank: "), tempTank.getValue());
+    }
+
+    if (this->tempHC.getValue()==0 || this->tempW.getValue()==0 || this->tempTank.getValue()==0) {
+      ErrorHandler::increaseFatalErrors();
+    } else {
+      ErrorHandler::clearFatalErrors();
     }
 
     lastTempCheck = millis();
