@@ -66,6 +66,10 @@ void IOController::setValue(int pin, int pinIndex, bool enable, bool force) {
   }
 }
 
+void IOController::setMode(int pinIndex, int mode) {
+  settingsData->ioModes[pinIndex] = mode;
+}
+
 void IOController::addPropertyValueListener(int pinIndex, Property::ValueChangeListener *valueChangeListener) {
   switch(pinIndex) {
     case PIN_PUMP_HC_INDEX:

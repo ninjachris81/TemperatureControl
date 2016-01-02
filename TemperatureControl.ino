@@ -18,6 +18,7 @@
 #include "serial_api.h"
 #include "wifi_logic.h"
 #include "watchdog_logic.h"
+#include "remotectrl_logic.h"
 
 LedLogic led;
 Settings settings;
@@ -28,6 +29,7 @@ SerialApi serialApi;
 BluetoothLogic bluetooth;
 WifiLogic wifiLogic;
 WatchdogLogic watchdogLogic;
+RemoteCtrlLogic remoteCtrlLogic;
 
 bool doExecuteProg;
 
@@ -61,6 +63,8 @@ void setup() {
   bluetooth.init();
 
   wifiLogic.init(&settings.settingsData.wifi, &temp, &ioController);
+
+  remoteCtrlLogic.init(&ioController);
 
   watchdogLogic.init();
   
@@ -105,6 +109,8 @@ void loop() {
   ioController.update();
 
   wifiLogic.update(freeRam);
+
+  remoteCtrlLogic.update();
 
   if (!ErrorHandler::hasFatalErrors()) {
     watchdogLogic.update();

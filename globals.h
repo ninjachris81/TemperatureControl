@@ -11,6 +11,8 @@
 #define BT_TX_PIN 10
 #define BT_RX_PIN 11
 
+#define PIN_RC_RX 12
+
 #define PIN_TEMP 7
 
 #define PIN_PUMP_HC 2

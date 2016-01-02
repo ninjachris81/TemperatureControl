@@ -37,6 +37,8 @@ public:
   void setValue(int pin, int pinIndex, bool enable);
   void setValue(int pin, int pinIndex, bool enable, bool force);
 
+  void setMode(int pinIndex, int mode);
+
   int getPropertyValue(int pinIndex);
 
   void addPropertyValueListener(int pinIndex, Property::ValueChangeListener *valueChangeListener);
