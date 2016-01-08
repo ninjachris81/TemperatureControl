@@ -38,6 +38,8 @@ public:
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
 
+  void reportError(String errorMsg);
+
 private:
   ESP8266 myEsp;
   ESP8266HttpClient myClient;

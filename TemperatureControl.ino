@@ -19,6 +19,7 @@
 #include "wifi_logic.h"
 #include "watchdog_logic.h"
 #include "remotectrl_logic.h"
+#include "errordetector_logic.h"
 
 LedLogic led;
 Settings settings;
@@ -30,6 +31,7 @@ BluetoothLogic bluetooth;
 WifiLogic wifiLogic;
 WatchdogLogic watchdogLogic;
 RemoteCtrlLogic remoteCtrlLogic;
+ErrorDetectorLogic errorDetectorLogic;
 
 bool doExecuteProg;
 
@@ -67,6 +69,8 @@ void setup() {
   remoteCtrlLogic.init(&ioController);
 
   watchdogLogic.init();
+
+  errorDetectorLogic.init(&ioController, &wifiLogic, &temp);
   
   if (!ErrorHandler::hasFatalErrors()) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
@@ -111,6 +115,8 @@ void loop() {
   wifiLogic.update(freeRam);
 
   remoteCtrlLogic.update();
+
+  errorDetectorLogic.update();
 
   if (!ErrorHandler::hasFatalErrors()) {
     watchdogLogic.update();

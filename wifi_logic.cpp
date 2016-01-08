@@ -189,3 +189,19 @@ void WifiLogic::parseDate(String inputStr, uint8_t &h, uint8_t &m) {
     sscanf(dateArr, "%*[a-zA-Z,] %d %s %d %d:%d%:%d", &d, M, &Y, &h, &m, &s);
   }
 }
+
+void WifiLogic::reportError(String errorMsg) {
+  if (myClient.connectToServer(WIFI_REMOTE_IP)) {
+    String response = "";
+    String query = F("/apps/thingtweet/1/statuses/update?api_key=AY7MVFNPXIYNPYQ4&status=");
+    query+=errorMsg;
+    
+    if (!myClient.executeGET(query, WIFI_REMOTE_HOST, HTTP_CONN_MODE_CLOSE, response)) {
+      LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Error @ GET"));
+    }
+  } else {
+    LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Connect Fail"));
+  }
+
+  myClient.disconnectFromServer();
+}

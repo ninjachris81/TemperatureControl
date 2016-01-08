@@ -38,7 +38,7 @@ void RemoteCtrlLogic::update() {
         lastOnPing = millis() + ON_PING_TIMEOUT_MS;
         break;
         case CMD_SWITCH_ON:
-        if (lastOnPing>0) {
+        if (lastOnPing==0) {
           LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Switching on"));
           ioController->setMode(PIN_PUMP_HC_INDEX, PUMP_MODE_ON);
         }
