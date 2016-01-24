@@ -2,6 +2,7 @@
 #include <SoftwareSerial.h>
 #include <Wire.h>
 #include <EEPROM.h>
+#include <RF24.h>
 
 #include "globals.h"
 
@@ -20,6 +21,10 @@
 #include "watchdog_logic.h"
 #include "remotectrl_logic.h"
 #include "errordetector_logic.h"
+
+//#define DISABLE_WIFI
+//#define DISABLE_BT
+#define DO_LOG_DEFAULT false
 
 LedLogic led;
 Settings settings;
@@ -61,12 +66,16 @@ void setup() {
   temp.init(&settings.settingsData.temp, &ioController);
 
   serialApi.init();
-  
+
+#ifndef DISABLE_BT
   bluetooth.init();
+#endif
 
+#ifndef DISABLE_WIFI
   wifiLogic.init(&settings.settingsData.wifi, &temp, &ioController);
+#endif
 
-  remoteCtrlLogic.init(&ioController);
+  remoteCtrlLogic.init(&ioController, &temp);
 
   watchdogLogic.init();
 
@@ -88,7 +97,7 @@ void setup() {
   } else {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Starting"));
   }
-  LogHandler::doLog = false;
+  LogHandler::doLog = DO_LOG_DEFAULT;
 }
 
 void loop() {
@@ -108,11 +117,15 @@ void loop() {
 
   time.update();
   
-  bluetooth.update();
-  
   ioController.update();
 
+#ifndef DISABLE_BT
+  bluetooth.update();
+#endif
+  
+#ifndef DISABLE_WIFI
   wifiLogic.update(freeRam);
+#endif
 
   remoteCtrlLogic.update();
 

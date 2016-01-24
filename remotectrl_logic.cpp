@@ -2,37 +2,55 @@
 #include "output_handler.h"
 #include "log_handler.h"
 #include "error_handler.h"
+#include "printf.h"
 
 RemoteCtrlLogic::RemoteCtrlLogic() {
+  broadcast = new RF24(49,53);
 }
 
 RemoteCtrlLogic::~RemoteCtrlLogic() {
+  delete broadcast;
 }
 
-void RemoteCtrlLogic::init(IOController *ioController) {
+void RemoteCtrlLogic::init(IOController *ioController, TemperatureLogic *tempLogic) {
   this->ioController = ioController;
+  this->tempLogic = tempLogic;
 
-  // Initialise the IO and ISR
-  vw_set_rx_pin(PIN_RC_RX);
-  vw_set_ptt_inverted(true); // Required for DR3100
-  vw_setup(2000);  // Bits per sec
-  vw_rx_start();       // Start the receiver PLL running
+  printf_begin();
+
+  broadcast->begin();
+
+  //broadcast->setPALevel(RF24_PA_LOW);
+  broadcast->setPALevel(RF24_PA_MAX);
+
+  broadcast->openWritingPipe(pipes[0]);
+  broadcast->openReadingPipe(1,pipes[1]);
+  broadcast->enableAckPayload();
+  broadcast->setRetries(0,15);
+
+  broadcast->printDetails();
+
+  //broadcast->startListening();
 }
 
 void RemoteCtrlLogic::update() {
-  //    LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Waiting for update, lu: "), lastUpdate);
-
-  uint8_t buf[VW_MAX_MESSAGE_LEN];
-  uint8_t buflen = VW_MAX_MESSAGE_LEN;
+  bool bcSuccess = false;
+  
+  if (lastBroadcast==0 || millis() - lastBroadcast >= BROADCAST_INTERVAL_MS) {
+    bcSuccess = sendBroadcast();
+    lastBroadcast = millis();
+  } else {
+    checkTimeout();
+  }
 
   // Wait for a message
-  if (vw_wait_rx_max(200)) {
-    if (vw_get_message(buf, &buflen)) // Non-blocking
-    {
+  if (bcSuccess) {
+    if (broadcast->available()) {
+      broadcast->read( &cmdData, sizeof(cmdData) );
       // Message with a good checksum received, dump it.
-      LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Rcv: "), buf[0]);
-
-      switch(buf[0]) {
+      LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Rcv: "), cmdData.cmd);
+  
+      switch(cmdData.cmd) {
         case CMD_SWITCH_OFF:
         LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Switching off"));
         lastOnPing = millis() + ON_PING_TIMEOUT_MS;
@@ -46,8 +64,28 @@ void RemoteCtrlLogic::update() {
         break;
       }
     }
+  }
+}
+
+bool RemoteCtrlLogic::sendBroadcast() {
+  LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Sending BC"));
+  
+  broadcastData.tempWater = tempLogic->getCurrentTemperatureW();
+  broadcastData.tempHC = tempLogic->getCurrentTemperatureHC();
+  broadcastData.tempTank = tempLogic->getCurrentTemperatureTank();
+
+  broadcastData.pumpWater = ioController->getPropertyValue(PIN_PUMP_WATER_INDEX)==IO_STATE_ON;
+  broadcastData.pumpHC = ioController->getPropertyValue(PIN_PUMP_HC_INDEX)==IO_STATE_ON;
+
+  LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Sending broadcast size "), sizeof(dataStruct));
+
+  broadcast->stopListening();
+  if (!broadcast->write( &broadcastData, sizeof(dataStruct),1 )){
+    LogHandler::warning(REMOTECTRL_MODULE_NAME, F("Failed to send broadcast"));
+    return false;
   } else {
-    checkTimeout();
+    LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Sent broadcast"));
+    return true;
   }
 }
 
