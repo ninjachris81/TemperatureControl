@@ -23,8 +23,8 @@
 #include "errordetector_logic.h"
 
 //#define DISABLE_WIFI
-//#define DISABLE_BT
-#define DO_LOG_DEFAULT false
+#define DISABLE_BT
+#define DO_LOG_DEFAULT true
 
 LedLogic led;
 Settings settings;

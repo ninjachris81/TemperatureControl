@@ -30,10 +30,15 @@ void RemoteCtrlLogic::init(IOController *ioController, TemperatureLogic *tempLog
 
   broadcast->printDetails();
 
+  isAvailable = broadcast->testRPD();
+
+  if (!isAvailable) LogHandler::warning(REMOTECTRL_MODULE_NAME, F("RF24 not available !"));
+
   //broadcast->startListening();
 }
 
 void RemoteCtrlLogic::update() {
+  if (!isAvailable) return;
   bool bcSuccess = false;
   
   if (lastBroadcast==0 || millis() - lastBroadcast >= BROADCAST_INTERVAL_MS) {

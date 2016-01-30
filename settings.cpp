@@ -47,16 +47,16 @@ bool Settings::onInput(String cmd) {
     
     // IO stuff
     // 9-10
-    tmpStr.concat(concatStr);
+    tmpStr.concat(F("HCM"));
     tmpStr.concat(settingsData.io.ioModes[PIN_PUMP_HC_INDEX]);
-    tmpStr.concat(concatStr);
+    tmpStr.concat(F("WM"));
     tmpStr.concat(settingsData.io.ioModes[PIN_PUMP_WATER_INDEX]);
-    tmpStr.concat(concatStr);
+    tmpStr.concat(F("FS"));
     tmpStr.concat(settingsData.io.ioModes[PIN_FLOW_SWITCH_INDEX]);
 
     // Wifi stuff
     // 11
-    tmpStr.concat(concatStr);
+    tmpStr.concat(F("AP"));
     tmpStr.concat(settingsData.wifi.apIndex);
 
     OutputHandler::sendCmd(SETTINGS_MODULE_NAME, tmpStr);

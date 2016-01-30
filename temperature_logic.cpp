@@ -99,8 +99,9 @@ void TemperatureLogic::sendCurrentTemp() {
   
   OutputHandler::sendCmd(TEMPERATURE_MODULE_NAME, tmpCmd);
   
-  //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("HC temperature is "), currentTemperatureHC);
-  //LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("W temperature is "), currentTemperatureW);
+  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("HC temperature is "), tempHC.getValue());
+  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("W temperature is "), tempW.getValue());
+  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("T temperature is "), tempTank.getValue());
 }
 
 void TemperatureLogic::update() {

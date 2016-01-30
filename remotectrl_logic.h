@@ -39,6 +39,8 @@ private:
 
   bool sendBroadcast();
 
+  bool isAvailable;
+
   struct dataStruct {
     int tempWater;
     int tempHC;
