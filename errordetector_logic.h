@@ -27,14 +27,18 @@
 class ErrorDetectorLogic {
   public:
 
-  void init(IOController *ioController, WifiLogic *wifiLogic, TemperatureLogic *tempLogic);
+  void init();
 
   void update();
 
+  void setIOController(IOController *ioController);
+  void setWifiLogic(WifiLogic *wifiLogic);
+  void setTempLogic(TemperatureLogic *tempLogic);
+
 private:
-  IOController *ioController;
-  WifiLogic *wifiLogic;
-  TemperatureLogic *tempLogic;
+  IOController *ioController = NULL;
+  WifiLogic *wifiLogic = NULL;
+  TemperatureLogic *tempLogic = NULL;
   
   unsigned long lastUpdate = 0;
   

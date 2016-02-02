@@ -22,9 +22,9 @@
 #include "remotectrl_logic.h"
 #include "errordetector_logic.h"
 
-//#define DISABLE_WIFI
+#define DISABLE_WIFI
 #define DISABLE_BT
-#define DO_LOG_DEFAULT true
+#define DO_LOG_DEFAULT false
 
 LedLogic led;
 Settings settings;
@@ -32,8 +32,13 @@ TimeLogic time;
 TemperatureLogic temp;
 IOController ioController;
 SerialApi serialApi;
-BluetoothLogic bluetooth;
-WifiLogic wifiLogic;
+
+#ifndef DISABLE_BT
+  BluetoothLogic bluetooth;
+#endif
+#ifndef DISABLE_WIFI
+  WifiLogic wifiLogic;
+#endif
 WatchdogLogic watchdogLogic;
 RemoteCtrlLogic remoteCtrlLogic;
 ErrorDetectorLogic errorDetectorLogic;
@@ -79,8 +84,14 @@ void setup() {
 
   watchdogLogic.init();
 
-  errorDetectorLogic.init(&ioController, &wifiLogic, &temp);
-  
+  errorDetectorLogic.init();
+
+  errorDetectorLogic.setIOController(&ioController);
+  errorDetectorLogic.setTempLogic(&temp);
+#ifndef DISABLE_WIFI
+  errorDetectorLogic.setWifiLogic(&wifiLogic);
+#endif
+
   if (!ErrorHandler::hasFatalErrors()) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
   } else {

@@ -64,6 +64,7 @@ void RemoteCtrlLogic::update() {
         if (lastOnPing==0) {
           LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Switching on"));
           ioController->setMode(PIN_PUMP_HC_INDEX, PUMP_MODE_ON);
+          ioController->setMode(PIN_PUMP_WATER_INDEX, PUMP_MODE_ON);
         }
         lastOnPing = millis();
         break;
@@ -84,7 +85,8 @@ bool RemoteCtrlLogic::sendBroadcast() {
 
   LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Sending broadcast size "), sizeof(dataStruct));
 
-  broadcast->stopListening();
+  //broadcast->stopListening();
+  
   if (!broadcast->write( &broadcastData, sizeof(dataStruct),1 )){
     LogHandler::warning(REMOTECTRL_MODULE_NAME, F("Failed to send broadcast"));
     return false;
@@ -99,6 +101,7 @@ void RemoteCtrlLogic::checkTimeout() {
   
   if (millis() - lastOnPing >= ON_PING_TIMEOUT_MS) {      // switch back to auto mode
     ioController->setMode(PIN_PUMP_HC_INDEX, PUMP_MODE_AUTO);
+    ioController->setMode(PIN_PUMP_WATER_INDEX, PUMP_MODE_AUTO);
     lastOnPing = 0;
   }
 }
