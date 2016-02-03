@@ -6,6 +6,7 @@
 #include "temperature_logic.h"
 
 #include <RF24.h>
+#include <RF24_config.h>
 
 #define REMOTECTRL_MODULE_NAME MODNAME("RC")
 
