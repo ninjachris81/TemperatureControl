@@ -4,6 +4,8 @@
 #include <EEPROM.h>
 #include <RF24.h>
 
+#include <avr/wdt.h>
+
 #include "globals.h"
 
 #define MAIN_MODULE_NAME MODNAME("MAIN")
@@ -18,13 +20,12 @@
 #include "led_logic.h"
 #include "serial_api.h"
 #include "wifi_logic.h"
-#include "watchdog_logic.h"
 #include "remotectrl_logic.h"
 #include "errordetector_logic.h"
 
 #define DISABLE_WIFI
 #define DISABLE_BT
-#define DO_LOG_DEFAULT false
+#define DO_LOG_DEFAULT true
 
 LedLogic led;
 Settings settings;
@@ -39,7 +40,6 @@ SerialApi serialApi;
 #ifndef DISABLE_WIFI
   WifiLogic wifiLogic;
 #endif
-WatchdogLogic watchdogLogic;
 RemoteCtrlLogic remoteCtrlLogic;
 ErrorDetectorLogic errorDetectorLogic;
 
@@ -82,8 +82,6 @@ void setup() {
 
   remoteCtrlLogic.init(&ioController, &temp);
 
-  watchdogLogic.init();
-
   errorDetectorLogic.init();
 
   errorDetectorLogic.setIOController(&ioController);
@@ -109,6 +107,8 @@ void setup() {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Starting"));
   }
   LogHandler::doLog = DO_LOG_DEFAULT;
+
+  wdt_enable(WDTO_8S);
 }
 
 void loop() {
@@ -121,26 +121,35 @@ void loop() {
   }
   
   serialApi.update();
+  wdt_reset();
 
   led.update();
+  wdt_reset();
   
   temp.update();
+  wdt_reset();
 
   time.update();
+  wdt_reset();
   
   ioController.update();
+  wdt_reset();
 
 #ifndef DISABLE_BT
   bluetooth.update();
+  wdt_reset();
 #endif
   
 #ifndef DISABLE_WIFI
   wifiLogic.update(freeRam);
+  wdt_reset();
 #endif
 
   remoteCtrlLogic.update();
+  wdt_reset();
 
   errorDetectorLogic.update();
+  wdt_reset();
 
   //if (!ErrorHandler::hasFatalErrors()) {
     watchdogLogic.update();
