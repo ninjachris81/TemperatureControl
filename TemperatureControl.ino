@@ -20,6 +20,7 @@
 #include "led_logic.h"
 #include "serial_api.h"
 #include "wifi_logic.h"
+#include "watchdog_logic.h"
 #include "remotectrl_logic.h"
 #include "errordetector_logic.h"
 
@@ -40,6 +41,7 @@ SerialApi serialApi;
 #ifndef DISABLE_WIFI
   WifiLogic wifiLogic;
 #endif
+WatchdogLogic watchdogLogic;
 RemoteCtrlLogic remoteCtrlLogic;
 ErrorDetectorLogic errorDetectorLogic;
 
@@ -81,6 +83,8 @@ void setup() {
 #endif
 
   remoteCtrlLogic.init(&ioController, &temp);
+
+  watchdogLogic.init();
 
   errorDetectorLogic.init();
 
@@ -149,7 +153,6 @@ void loop() {
   wdt_reset();
 
   errorDetectorLogic.update();
-  wdt_reset();
 
   //if (!ErrorHandler::hasFatalErrors()) {
     watchdogLogic.update();
