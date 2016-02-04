@@ -142,7 +142,7 @@ void loop() {
 
   errorDetectorLogic.update();
 
-  if (!ErrorHandler::hasFatalErrors()) {
+  //if (!ErrorHandler::hasFatalErrors()) {
     watchdogLogic.update();
-  }
+  //}
 }
