@@ -71,6 +71,11 @@ void RemoteCtrlLogic::update() {
         lastOnPing = millis();
         break;
       }
+    } else {
+      if (lastBroadcast>0 && millis() - lastBroadcast > RESET_TIMEOUT_MS) {
+        LogHandler::logMsg(REMOTECTRL_MODULE_NAME, F("Resetting due to broadcast errors"));
+        asm volatile ("  jmp 0");
+      }
     }
   }
 }

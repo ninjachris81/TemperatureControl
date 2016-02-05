@@ -18,6 +18,8 @@
 
 #define BROADCAST_INTERVAL_MS 5000
 
+#define RESET_TIMEOUT_MS 300000   // 5 min
+
 class RemoteCtrlLogic {
 public:
   RemoteCtrlLogic();
