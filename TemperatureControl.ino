@@ -23,9 +23,11 @@
 #include "watchdog_logic.h"
 #include "remotectrl_logic.h"
 #include "errordetector_logic.h"
+#include "ntp_logic.h"
 
 #define DISABLE_WIFI
 #define DISABLE_BT
+
 #define DO_LOG_DEFAULT true
 
 LedLogic led;
@@ -41,6 +43,8 @@ SerialApi serialApi;
 #ifndef DISABLE_WIFI
   WifiLogic wifiLogic;
 #endif
+
+NtpLogic ntpLogic;
 WatchdogLogic watchdogLogic;
 RemoteCtrlLogic remoteCtrlLogic;
 ErrorDetectorLogic errorDetectorLogic;
@@ -94,6 +98,8 @@ void setup() {
   errorDetectorLogic.setWifiLogic(&wifiLogic);
 #endif
 
+  ntpLogic.init();
+
   if (!ErrorHandler::hasFatalErrors()) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
   } else {
@@ -137,6 +143,9 @@ void loop() {
   wdt_reset();
   
   ioController.update();
+  wdt_reset();
+
+  ntpLogic.update();
   wdt_reset();
 
 #ifndef DISABLE_BT
