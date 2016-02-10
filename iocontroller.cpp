@@ -2,15 +2,16 @@
 #include "globals.h"
 #include "log_handler.h"
 #include "output_handler.h"
+#include "properties.h"
 
 void IOController::init(IOSettingsStruct *settings) {
   //LogHandler::logMsg(IOC_MODULE_NAME, F("Init"));
   
   this->settingsData = settings;
 
-  this->hcState.init(PIN_PUMP_HC_INDEX);
-  this->wState.init(PIN_PUMP_WATER_INDEX);
-  this->fsState.init(PIN_FLOW_SWITCH_INDEX);
+  this->hcState.init(PROPERTY_PUMP_HC);
+  this->wState.init(PROPERTY_PUMP_WATER);
+  this->fsState.init(PROPERTY_FLOW_SWITCH);
 
   pinMode(PIN_PUMP_HC, OUTPUT);
   setValue(PIN_PUMP_HC, PIN_PUMP_HC_INDEX, false, true);

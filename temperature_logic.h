@@ -46,6 +46,8 @@ public:
   
   /*virtual*/ void onPropertyValueChange(uint8_t id, int value);
 
+  void addPropertyValueListener(uint8_t id, Property::ValueChangeListener *valueChangeListener);
+
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);
 

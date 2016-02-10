@@ -23,9 +23,9 @@
 #include "watchdog_logic.h"
 #include "remotectrl_logic.h"
 #include "errordetector_logic.h"
-#include "ntp_logic.h"
 
-#define DISABLE_WIFI
+//#define DISABLE_WIFI
+#define DISABLE_REMOTE
 #define DISABLE_BT
 
 #define DO_LOG_DEFAULT true
@@ -40,13 +40,16 @@ SerialApi serialApi;
 #ifndef DISABLE_BT
   BluetoothLogic bluetooth;
 #endif
+
 #ifndef DISABLE_WIFI
   WifiLogic wifiLogic;
 #endif
 
-NtpLogic ntpLogic;
+#ifndef DISABLE_REMOTE
+  RemoteCtrlLogic remoteCtrlLogic;
+#endif
+
 WatchdogLogic watchdogLogic;
-RemoteCtrlLogic remoteCtrlLogic;
 ErrorDetectorLogic errorDetectorLogic;
 
 bool doExecuteProg;
@@ -86,7 +89,9 @@ void setup() {
   wifiLogic.init(&settings.settingsData.wifi, &temp, &ioController);
 #endif
 
+#ifndef DISABLE_REMOTE
   remoteCtrlLogic.init(&ioController, &temp);
+#endif
 
   watchdogLogic.init();
 
@@ -97,8 +102,6 @@ void setup() {
 #ifndef DISABLE_WIFI
   errorDetectorLogic.setWifiLogic(&wifiLogic);
 #endif
-
-  ntpLogic.init();
 
   if (!ErrorHandler::hasFatalErrors()) {
     LogHandler::logMsg(MAIN_MODULE_NAME, F("Finished init"));
@@ -145,9 +148,6 @@ void loop() {
   ioController.update();
   wdt_reset();
 
-  ntpLogic.update();
-  wdt_reset();
-
 #ifndef DISABLE_BT
   bluetooth.update();
   wdt_reset();
@@ -158,8 +158,10 @@ void loop() {
   wdt_reset();
 #endif
 
+#ifndef DISABLE_REMOTE
   remoteCtrlLogic.update();
   wdt_reset();
+#endif
 
   errorDetectorLogic.update();
 

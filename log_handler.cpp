@@ -75,7 +75,26 @@ void LogHandler::logMsg(String moduleName, String msg, int val) {
   String str = moduleName;
   str.concat(F("> "));
   str.concat(msg);
+  str.concat(F(" "));
   str.concat(val);
+
+#ifdef DEBUG_PRINT
+  DEBUG_SERIAL.println(str);
+#endif
+
+  sendToListeners(str);
+}
+
+void LogHandler::logMsg(String moduleName, String msg, int val1, int val2) {
+  if (!doLog) return;
+
+  String str = moduleName;
+  str.concat(F("> "));
+  str.concat(msg);
+  str.concat(F(" "));
+  str.concat(val1);
+  str.concat(F(" "));
+  str.concat(val2);
 
 #ifdef DEBUG_PRINT
   DEBUG_SERIAL.println(str);

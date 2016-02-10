@@ -2,7 +2,6 @@
 #define wifi_logic_h
 
 #include "globals.h"
-#include "esp8266_httpclient.h"
 #include "temperature_logic.h"
 #include "input_handler.h"
 #include "iocontroller.h"
@@ -11,24 +10,25 @@
 
 #define WIFI_HANDLER_MODULE_NAME MODNAME("WIFI")
 
-#define WIFI_AP_STALNET_REPEAT 0
-#define WIFI_AP_STALNET 1
+#define WIFI_UPDATE_INTERVAL_MIN_MS 10000
 
-//#define WIFI_CHECK_INTERVAL_MIN_MS 300000   // 5 minutes
-#define WIFI_CHECK_INTERVAL_MIN_MS 600000   // 10 minutes
-//#define WIFI_CHECK_INTERVAL_MIN_MS 60000   // 1 minute
+#define ESP_SERIAL Serial1
 
-#define WIFI_STATUS_INIT 0
-#define WIFI_STATUS_CONNECTED_AP 1
-
-#define WIFI_REMOTE_IP F("184.106.153.149")
-#define WIFI_REMOTE_HOST F("api.thingspeak.com")
+// @see TemperatureControlESP8266 -> http_logic.h
+#define FIELD_INDEX_WATER 0
+#define FIELD_INDEX_HC 1
+#define FIELD_INDEX_TANK 2
+#define FIELD_INDEX_PUMP_W 3
+#define FIELD_INDEX_PUMP_HC 4
+#define FIELD_INDEX_FLOW_SWITCH 5
+#define FIELD_INDEX_FREE_RAM 6
+#define FIELD_INDEX_RESTARTED 7
 
 class WifiLogic: public InputHandler::InputListener, public Property::ValueChangeListener {
 public:
 
   struct WifiSettingsStruct {
-    byte apIndex;
+    byte apIndex;   // obsolete
   } *settingsData;
   
   void init(WifiSettingsStruct *settings, TemperatureLogic *temperatureLogic, IOController *ioController);
@@ -41,9 +41,6 @@ public:
   void reportError(String errorMsg);
 
 private:
-  ESP8266 myEsp;
-  ESP8266HttpClient myClient;
-
   TemperatureLogic *temperatureLogic;
   IOController *ioController;
 
@@ -54,20 +51,14 @@ private:
   StopTimer wST;
   StopTimer fsST;
 
+  void updateFieldValue(uint8_t index, int value);
+
+  void setActive(bool isActive);
+
   bool firstTime = true;
-
-  bool connectAp();
-  
-  void syncData(int freeRam);
-
-  void addParam(String &query, uint8_t index, int value);
-  
-  void parseDate(String inputStr, uint8_t &h, uint8_t &m);
 
   unsigned long lastUpdate = 0;
   
-  uint8_t status = WIFI_STATUS_INIT;
-
 };
 
 #endif

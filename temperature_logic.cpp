@@ -3,19 +3,20 @@
 #include "output_handler.h"
 #include "log_handler.h"
 #include "error_handler.h"
+#include "properties.h"
 
 TemperatureLogic::TemperatureLogic() {
   this->wire = new OneWire(PIN_TEMP);
   this->tempSensors = new DallasTemperature(wire);
   simulateTemp = false;
 
-  this->tempHC.init(TEMP_INDEX_HC);
-  this->tempW.init(TEMP_INDEX_W);
-  this->tempW.init(TEMP_INDEX_TANK);
+  this->tempHC.init(PROPERTY_TEMP_HC);
+  this->tempW.init(PROPERTY_TEMP_WATER);
+  this->tempTank.init(PROPERTY_TEMP_TANK);
 
   this->tempHC.registerValueChangeListener(this);
   this->tempW.registerValueChangeListener(this);
-  //this->tempTank.registerValueChangeListener(this);
+  //this->tempTank.registerValueChangeListener(this);   dont react to this one
 }
 
 TemperatureLogic::~TemperatureLogic() {
@@ -59,6 +60,20 @@ void TemperatureLogic::init(TempSettingsStruct *settings, IOController *ioContro
   
 //  LogHandler::logMsg(TEMPERATURE_MODULE_NAME, F("Number of temp sensors found: "), tempSensors->getDeviceCount());
   InputHandler::registerListener(this);
+}
+
+void TemperatureLogic::addPropertyValueListener(uint8_t id, Property::ValueChangeListener *valueChangeListener) {
+  switch(id) {
+    case PROPERTY_TEMP_WATER:
+      this->tempW.registerValueChangeListener(valueChangeListener);
+      break;
+    case PROPERTY_TEMP_HC:
+      this->tempHC.registerValueChangeListener(valueChangeListener);
+      break;
+    case PROPERTY_TEMP_TANK:
+      this->tempTank.registerValueChangeListener(valueChangeListener);
+      break;
+  }
 }
 
 void TemperatureLogic::onPropertyValueChange(uint8_t id, int value) {

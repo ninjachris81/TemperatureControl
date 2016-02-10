@@ -1,6 +1,7 @@
 #include "settings.h"
 #include "globals.h"
 #include "output_handler.h"
+#include "input_handler.h"
 #include "log_handler.h"
 
 void Settings::init() {
@@ -18,6 +19,8 @@ bool Settings::onInput(String cmd) {
   } else if (cmd.equals(F("DEFAULT"))) {
     defaultSettings();
     return true;
+  } else if (cmd.startsWith(F("SET"))) {
+    // TODO
   } else if (cmd.equals(F("GET"))) {
     String tmpStr = "CS ";
     
@@ -114,5 +117,5 @@ void Settings::defaultSettings() {
   settingsData.io.ioModes[PIN_PUMP_WATER_INDEX] = PUMP_MODE_AUTO; 
   settingsData.io.ioModes[PIN_FLOW_SWITCH_INDEX] = PUMP_MODE_AUTO; 
 
-  settingsData.wifi.apIndex = WIFI_AP_STALNET_REPEAT;
+  settingsData.wifi.apIndex = 0;    // obsolete
 }

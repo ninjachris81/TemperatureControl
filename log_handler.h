@@ -52,6 +52,8 @@ public:
 
   static void logMsg(String moduleName, String msg, int val);
 
+  static void logMsg(String moduleName, String msg, int val1, int val2);
+
   static void logMsg(String moduleName, String msg, String val);
   
   static void warning(String moduleName, String msg);
