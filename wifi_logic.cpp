@@ -37,6 +37,11 @@ bool WifiLogic::onInput(String cmd) {
       LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("AP:"), v2);
       this->settingsData->apIndex = v2;
     }
+  } else if (cmd.startsWith(F("CMD "))) {
+    cmd = cmd.substring(4);
+    cmd.trim();
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("CMD:"), cmd);
+    ESP_SERIAL.println(cmd);
   }
 }
 
@@ -97,21 +102,26 @@ void WifiLogic::update(int freeRam) {
     if (tmp.startsWith("UT=")) {
       tmp = tmp.substring(3);
       tmp.trim();
-      int tmpTs = tmp.toInt();
+      long tmpTs = atol(tmp.c_str());
 
       if(tmpTs>0) {
         int h, m, s;
 
+        LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("New Ts"), tmpTs);
+        
         h = ((tmpTs  % 86400L) / 3600); // the hour (86400 equals secs per day)
         m = ((tmpTs  % 3600) / 60); // the minute (3600 equals secs per minute)
         s = (tmpTs % 60); // the second
+
+        h+=1;
+        h=h%24;
 
         TimeLogic::save(h, m, 0);
         LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("New Time"), h, m);
       } else {
         LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Invalid ts"), tmpTs);
       }
-    } else if (tmp.equals("HTTP OK")) {
+    } else if (tmp.startsWith("HTTP OK")) {
       LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("HTTP Success"));
       firstTime = false;
       wST.reset();
@@ -139,6 +149,7 @@ void WifiLogic::update(int freeRam) {
     updateFieldValue(FIELD_INDEX_HC, temperatureLogic->getCurrentTemperatureHC());
     updateFieldValue(FIELD_INDEX_TANK, temperatureLogic->getCurrentTemperatureTank());
     setActive(true);
+    firstTime = false;
   }
 }
 
