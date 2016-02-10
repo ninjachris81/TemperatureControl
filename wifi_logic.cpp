@@ -42,6 +42,8 @@ bool WifiLogic::onInput(String cmd) {
 
 
 void WifiLogic::onPropertyValueChange(uint8_t id, int value) {
+  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("PROP CHANGE"), id, value);
+
   switch(id) {
     case PROPERTY_TEMP_WATER:
       updateFieldValue(FIELD_INDEX_WATER, value);
@@ -65,6 +67,8 @@ void WifiLogic::onPropertyValueChange(uint8_t id, int value) {
 }
 
 void WifiLogic::updateFieldValue(uint8_t index, int value) {
+  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("Field"), index, value);
+
   ESP_SERIAL.print(F("HTTP FIELD "));
   ESP_SERIAL.print(index);
   ESP_SERIAL.print(" ");
@@ -72,6 +76,8 @@ void WifiLogic::updateFieldValue(uint8_t index, int value) {
 }
 
 void WifiLogic::setActive(bool isActive) {
+  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("ACTIVE"), isActive);
+
   ESP_SERIAL.print(F("HTTP "));
   ESP_SERIAL.println(isActive ? F("ON") : F("OFF"));
 }
@@ -92,6 +98,7 @@ void WifiLogic::update(int freeRam) {
       tmp = tmp.substring(3);
       tmp.trim();
       int tmpTs = tmp.toInt();
+
       if(tmpTs>0) {
         int h, m, s;
 
