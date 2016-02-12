@@ -60,9 +60,11 @@ void WifiLogic::onPropertyValueChange(uint8_t id, int value) {
       updateFieldValue(FIELD_INDEX_TANK, value);
       break;
     case PROPERTY_PUMP_HC:
+      updateFieldValue(FIELD_INDEX_PUMP_HC_ON, value);
       setStopTimer(hcST, value);
       break;
     case PROPERTY_PUMP_WATER:
+      updateFieldValue(FIELD_INDEX_PUMP_WATER_ON, value);
       setStopTimer(wST, value);
       break;
     case PROPERTY_FLOW_SWITCH:
@@ -80,10 +82,19 @@ void WifiLogic::updateFieldValue(uint8_t index, int value) {
   ESP_SERIAL.println(value);
 }
 
-void WifiLogic::setActive(bool isActive) {
-  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("ACTIVE"), isActive);
+void WifiLogic::setUpdateActive(bool isActive) {
+  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("UPDATE ACTIVE"), isActive);
 
-  ESP_SERIAL.print(F("HTTP "));
+  ESP_SERIAL.print(F("HTTP UPDATE "));
+  ESP_SERIAL.println(isActive ? F("ON") : F("OFF"));
+}
+
+void WifiLogic::setDataActive(bool isActive) {
+  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("DATA ACTIVE"), isActive);
+
+  this->isDataActive = isActive;
+
+  ESP_SERIAL.print(F("HTTP DATA "));
   ESP_SERIAL.println(isActive ? F("ON") : F("OFF"));
 }
 
@@ -121,12 +132,26 @@ void WifiLogic::update(int freeRam) {
       } else {
         LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Invalid ts"), tmpTs);
       }
-    } else if (tmp.startsWith("HTTP OK")) {
+    } else if (tmp.startsWith("HTTP UPDATE OK")) {
       LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("HTTP Success"));
       firstTime = false;
+      updateFieldValue(FIELD_INDEX_RESTARTED, 0);
       wST.reset();
       hcST.reset();
       fsST.reset();
+    } else if (tmp.startsWith("HTTP DATA OK")) {
+      LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("HTTP DATA OK"));
+    } else if (tmp.startsWith("EXEC ")) {
+      tmp = tmp.substring(5);
+      tmp.trim();
+
+      if (tmp.startsWith("OVERRIDE")) {
+        lastOverrideReceived = millis();
+        setDataActive(true);
+        setManualOverride(true);
+      }
+    } else if (tmp.startsWith(">")) {
+      LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("ESP:"), tmp);
     } else {
       LogHandler::warning(WIFI_HANDLER_MODULE_NAME, F("Ignoring "), tmp);
     }
@@ -136,20 +161,43 @@ void WifiLogic::update(int freeRam) {
     lastUpdate = millis();
 
     // update other values
-    updateFieldValue(FIELD_INDEX_PUMP_W, ((int)wST.currentMs()/1000));
-    updateFieldValue(FIELD_INDEX_PUMP_HC, ((int)hcST.currentMs()/1000));
+    updateFieldValue(FIELD_INDEX_PUMP_WATER_SEC, ((int)wST.currentMs()/1000));
+    updateFieldValue(FIELD_INDEX_PUMP_HC_SEC, ((int)hcST.currentMs()/1000));
     updateFieldValue(FIELD_INDEX_FLOW_SWITCH, ((int)fsST.currentMs()/1000));
-    updateFieldValue(FIELD_INDEX_FREE_RAM, freeRam);
-    updateFieldValue(FIELD_INDEX_RESTARTED, firstTime ? 1 : 0);
+
+    if (lastFreeRam!=freeRam) {
+      updateFieldValue(FIELD_INDEX_FREE_RAM, freeRam);
+    }
+
+    if (firstTime) {
+      // init values
+      updateFieldValue(FIELD_INDEX_WATER, temperatureLogic->getCurrentTemperatureW());
+      updateFieldValue(FIELD_INDEX_HC, temperatureLogic->getCurrentTemperatureHC());
+      updateFieldValue(FIELD_INDEX_TANK, temperatureLogic->getCurrentTemperatureTank());
+      updateFieldValue(FIELD_INDEX_RESTARTED, 1);
+      setUpdateActive(true);
+    }
   }
 
-  if (firstTime) {
-    // init values
-    updateFieldValue(FIELD_INDEX_WATER, temperatureLogic->getCurrentTemperatureW());
-    updateFieldValue(FIELD_INDEX_HC, temperatureLogic->getCurrentTemperatureHC());
-    updateFieldValue(FIELD_INDEX_TANK, temperatureLogic->getCurrentTemperatureTank());
-    setActive(true);
-    firstTime = false;
+  // check override timeout
+  if (lastOverrideReceived>0 && millis() - lastOverrideReceived > WIFI_OVERRIDE_TIMEOUT_MS) {
+    lastOverrideReceived = 0;
+    setDataActive(false);
+    setManualOverride(false);
+  }
+
+  lastFreeRam = freeRam;
+}
+
+void WifiLogic::setManualOverride(bool enabled) {
+  LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("OVERRIDE:"), enabled);
+
+  if (enabled) {
+    ioController->setMode(PIN_PUMP_HC_INDEX, PUMP_MODE_ON);
+    ioController->setMode(PIN_PUMP_WATER_INDEX, PUMP_MODE_ON);
+  } else {
+    ioController->setMode(PIN_PUMP_HC_INDEX, PUMP_MODE_AUTO);
+    ioController->setMode(PIN_PUMP_WATER_INDEX, PUMP_MODE_AUTO);
   }
 }
 
