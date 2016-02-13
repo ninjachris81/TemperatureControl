@@ -27,6 +27,7 @@
 #define FIELD_INDEX_RESTARTED 7
 #define FIELD_INDEX_PUMP_WATER_ON 8
 #define FIELD_INDEX_PUMP_HC_ON 9
+#define FIELD_INDEX_TS 10
 
 class WifiLogic: public InputHandler::InputListener, public Property::ValueChangeListener {
 public:

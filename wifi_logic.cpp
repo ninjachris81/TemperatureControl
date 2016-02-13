@@ -165,6 +165,10 @@ void WifiLogic::update(int freeRam) {
     updateFieldValue(FIELD_INDEX_PUMP_HC_SEC, ((int)hcST.currentMs()/1000));
     updateFieldValue(FIELD_INDEX_FLOW_SWITCH, ((int)fsST.currentMs()/1000));
 
+    if (isDataActive) {
+      updateFieldValue(FIELD_INDEX_TS, millis());
+    }
+
     if (lastFreeRam!=freeRam) {
       updateFieldValue(FIELD_INDEX_FREE_RAM, freeRam);
     }
