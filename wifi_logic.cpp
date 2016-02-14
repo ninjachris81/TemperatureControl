@@ -149,6 +149,8 @@ void WifiLogic::update(int freeRam) {
         lastOverrideReceived = millis();
         setDataActive(true);
         setManualOverride(true);
+      } else if (tmp.startsWith("STOP")) {
+        lastOverrideReceived = 1;   // this will trigger stop
       }
     } else if (tmp.startsWith(">")) {
       LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("ESP:"), tmp);
