@@ -41,7 +41,7 @@ public:
 
   int getPropertyValue(int pinIndex);
 
-  void addPropertyValueListener(int pinIndex, Property::ValueChangeListener *valueChangeListener);
+  void addPropertyValueListener(uint8_t id, Property::ValueChangeListener *valueChangeListener);
   
   /*virtual*/ String getName();
   /*virtual*/ bool onInput(String cmd);

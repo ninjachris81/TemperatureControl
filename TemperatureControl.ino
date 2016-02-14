@@ -25,7 +25,7 @@
 #include "errordetector_logic.h"
 
 //#define DISABLE_WIFI
-//#define DISABLE_REMOTE
+#define DISABLE_REMOTE
 #define DISABLE_BT
 
 #define DO_LOG_DEFAULT true

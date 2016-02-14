@@ -194,6 +194,13 @@ void WifiLogic::update(int freeRam) {
     lastOverrideReceived = 0;
     setDataActive(false);
     setManualOverride(false);
+
+    // update last time
+    LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("Sending final update"));
+    updateFieldValue(FIELD_INDEX_PUMP_HC_ON, 0);
+    updateFieldValue(FIELD_INDEX_PUMP_WATER_ON, 0);
+
+    ESP_SERIAL.println(F("HTTP DATA SEND"));
   }
 
   lastFreeRam = freeRam;

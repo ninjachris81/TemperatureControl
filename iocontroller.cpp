@@ -71,15 +71,15 @@ void IOController::setMode(int pinIndex, int mode) {
   settingsData->ioModes[pinIndex] = mode;
 }
 
-void IOController::addPropertyValueListener(int pinIndex, Property::ValueChangeListener *valueChangeListener) {
-  switch(pinIndex) {
-    case PIN_PUMP_HC_INDEX:
+void IOController::addPropertyValueListener(uint8_t id, Property::ValueChangeListener *valueChangeListener) {
+  switch(id) {
+    case PROPERTY_PUMP_HC:
       this->hcState.registerValueChangeListener(valueChangeListener);
       break;
-    case PIN_PUMP_WATER_INDEX:
+    case PROPERTY_PUMP_WATER:
       this->wState.registerValueChangeListener(valueChangeListener);
       break;
-    case PIN_FLOW_SWITCH_INDEX:
+    case PROPERTY_FLOW_SWITCH:
       this->fsState.registerValueChangeListener(valueChangeListener);
       break;
   }
