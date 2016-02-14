@@ -22,6 +22,8 @@ void WifiLogic::init(WifiSettingsStruct *settings, TemperatureLogic *temperature
   InputHandler::registerListener(this);
 
   ESP_SERIAL.begin(115200);
+
+  ESP_SERIAL.println(F("HTTP CLEAR"));
 }
 
 String WifiLogic::getName() {
@@ -141,6 +143,8 @@ void WifiLogic::update(int freeRam) {
       fsST.reset();
     } else if (tmp.startsWith("HTTP DATA OK")) {
       LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("HTTP DATA OK"));
+    } else if (tmp.startsWith("CLEARED")) {
+      LogHandler::logMsg(WIFI_HANDLER_MODULE_NAME, F("Commands cleared"));
     } else if (tmp.startsWith("EXEC ")) {
       tmp = tmp.substring(5);
       tmp.trim();
